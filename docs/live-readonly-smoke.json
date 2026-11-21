@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-22",
+  "project_ref": "nfoohhydncflcbegrxbz",
+  "mode": "Metadata/content reads, rejected requests and empty tracking lookup; transient rate counter only; no school record or account creation",
+  "checks": [
+    {
+      "name": "public settings read",
+      "status": "passed",
+      "detail": "One settings record is accessible."
+    },
+    {
+      "name": "anonymous students privacy",
+      "status": "passed",
+      "detail": "No rows visible; live table is empty and RLS metadata is audited separately."
+    },
+    {
+      "name": "anonymous admissions privacy",
+      "status": "passed",
+      "detail": "No rows visible; live table is empty and RLS metadata is audited separately."
+    },
+    {
+      "name": "anonymous results privacy",
+      "status": "passed",
+      "detail": "No rows visible; live table is empty and RLS metadata is audited separately."
+    },
+    {
+      "name": "anonymous contact_messages privacy",
+      "status": "passed",
+      "detail": "No rows visible; live table is empty and RLS metadata is audited separately."
+    },
+    {
+      "name": "anonymous admin membership denied",
+      "status": "passed",
+      "detail": "Direct membership SELECT rejected."
+    },
+    {
+      "name": "anonymous membership helper",
+      "status": "passed",
+      "detail": "is_admin returned false."
+    },
+    {
+      "name": "anonymous RPC lookup_result denied",
+      "status": "passed",
+      "detail": "Execution permission rejected before function runs."
+    },
+    {
+      "name": "anonymous RPC track_admission denied",
+      "status": "passed",
+      "detail": "Execution permission rejected before function runs."
+    },
+    {
+      "name": "anonymous RPC consume_rate_limit denied",
+      "status": "passed",
+      "detail": "Execution permission rejected before function runs."
+    },
+    {
+      "name": "hosted Auth policy",
+      "status": "passed",
+      "detail": "Email enabled; public signup disabled; email confirmation required."
+    },
+    {
+      "name": "private document listing",
+      "status": "passed",
+      "detail": "Anonymous client sees no private objects."
+    },
+    {
+      "name": "public API configured preflight",
+      "status": "passed",
+      "detail": "Exact local origin accepted."
+    },
+    {
+      "name": "public API untrusted origin rejected",
+      "status": "passed",
+      "detail": "Untrusted origin rejected."
+    },
+    {
+      "name": "public API missing origin rejected",
+      "status": "passed",
+      "detail": "No browser origin was not treated as an allowlist entry."
+    },
+    {
+      "name": "public API invalid payload rejected",
+      "status": "passed",
+      "detail": "Unknown operation rejected without database call."
+    },
+    {
+      "name": "public API missing form metadata rejected",
+      "status": "passed",
+      "detail": "Missing anti-spam metadata rejected."
+    },
+    {
+      "name": "public API honeypot rejection",
+      "status": "passed",
+      "detail": "Honeypot submission rejected before database operations."
+    },
+    {
+      "name": "public API tracking without CAPTCHA",
+      "status": "passed",
+      "detail": "Validated tracking request completed without CAPTCHA; no school record was created."
+    },
+    {
+      "name": "upload anonymous request rejected",
+      "status": "passed",
+      "detail": "No authenticated bearer session; upload rejected."
+    },
+    {
+      "name": "upload forged session rejected",
+      "status": "passed",
+      "detail": "Server validates session with Auth before file handling."
+    }
+  ]
+}

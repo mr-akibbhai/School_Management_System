@@ -1,0 +1,691 @@
+{
+  "verified_date": "2026-11-22",
+  "project_name": "School_Management_System",
+  "project_ref": "nfoohhydncflcbegrxbz",
+  "project_url": "https://nfoohhydncflcbegrxbz.supabase.co",
+  "source_commit": "aa0301c0486aa97e19aad07841c1a5c6e465e695",
+  "migrations": [
+    {
+      "source_file": "202611220001_school.sql",
+      "source_sha256": "0eca62c08340c6bdc92f7b665cd881f9ac0fe28ba557406d96532d9c443c9f0e",
+      "applied_version": "20261121214713",
+      "applied_name": "school"
+    },
+    {
+      "source_file": "202611220002_storage.sql",
+      "source_sha256": "637c925ad0ba035b062d85e6774aa2e658c81c97aa805fdc9e16d413c62c15ba",
+      "applied_version": "20261121214718",
+      "applied_name": "storage"
+    },
+    {
+      "source_file": "202611220003_home_layout.sql",
+      "source_sha256": "bfc7449847fec73367e8e1d0787bb7d5994afd2749e455cc3d3c18a0d56b398f",
+      "applied_version": "20261121214730",
+      "applied_name": "home_layout"
+    }
+  ],
+  "verification": {
+    "tables": [
+      {
+        "table": "settings",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "rate_limits",
+        "schema": "private",
+        "rls_forced": false,
+        "rls_enabled": false
+      },
+      {
+        "table": "admins",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "classes",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "students",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "admissions",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "exams",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "results",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "attendance",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "contact_messages",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "content",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "people",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "events",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "gallery",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "academic_documents",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "notices",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      },
+      {
+        "table": "activity_logs",
+        "schema": "public",
+        "rls_forced": false,
+        "rls_enabled": true
+      }
+    ],
+    "missingTables": [],
+    "publicRlsAllEnabled": true,
+    "foreignKeys": [
+      {
+        "name": "admins_user_id_fkey",
+        "table": "admins",
+        "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      },
+      {
+        "name": "students_class_id_fkey",
+        "table": "students",
+        "definition": "FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE RESTRICT"
+      },
+      {
+        "name": "exams_class_id_fkey",
+        "table": "exams",
+        "definition": "FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE RESTRICT"
+      },
+      {
+        "name": "results_student_id_fkey",
+        "table": "results",
+        "definition": "FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT"
+      },
+      {
+        "name": "results_exam_id_fkey",
+        "table": "results",
+        "definition": "FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE RESTRICT"
+      },
+      {
+        "name": "attendance_student_id_fkey",
+        "table": "attendance",
+        "definition": "FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT"
+      },
+      {
+        "name": "attendance_class_id_fkey",
+        "table": "attendance",
+        "definition": "FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE RESTRICT"
+      }
+    ],
+    "indexes": [
+      {
+        "schema": "public",
+        "table": "settings",
+        "name": "settings_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "settings",
+        "name": "settings_singleton_key"
+      },
+      {
+        "schema": "private",
+        "table": "rate_limits",
+        "name": "rate_limits_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "admins",
+        "name": "admins_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "admins",
+        "name": "admins_singleton_key"
+      },
+      {
+        "schema": "public",
+        "table": "classes",
+        "name": "classes_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "classes",
+        "name": "classes_level_section_academic_year_key"
+      },
+      {
+        "schema": "public",
+        "table": "students",
+        "name": "students_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "students",
+        "name": "students_student_code_key"
+      },
+      {
+        "schema": "public",
+        "table": "students",
+        "name": "students_class_id_roll_key"
+      },
+      {
+        "schema": "public",
+        "table": "students",
+        "name": "students_class"
+      },
+      {
+        "schema": "public",
+        "table": "admissions",
+        "name": "admissions_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "admissions",
+        "name": "admissions_tracking_code_key"
+      },
+      {
+        "schema": "public",
+        "table": "exams",
+        "name": "exams_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "results",
+        "name": "results_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "results",
+        "name": "results_access_code_key"
+      },
+      {
+        "schema": "public",
+        "table": "results",
+        "name": "results_student_id_exam_id_key"
+      },
+      {
+        "schema": "public",
+        "table": "results",
+        "name": "results_exam"
+      },
+      {
+        "schema": "public",
+        "table": "attendance",
+        "name": "attendance_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "attendance",
+        "name": "attendance_student_id_attendance_date_key"
+      },
+      {
+        "schema": "public",
+        "table": "contact_messages",
+        "name": "contact_messages_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "content",
+        "name": "content_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "people",
+        "name": "people_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "events",
+        "name": "events_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "gallery",
+        "name": "gallery_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "academic_documents",
+        "name": "academic_documents_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "notices",
+        "name": "notices_pkey"
+      },
+      {
+        "schema": "public",
+        "table": "notices",
+        "name": "notices_publication"
+      },
+      {
+        "schema": "public",
+        "table": "activity_logs",
+        "name": "activity_logs_pkey"
+      }
+    ],
+    "policyCount": 25,
+    "buckets": [
+      {
+        "id": "branding",
+        "public": true,
+        "file_size_limit": 5242880,
+        "allowed_mime_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ]
+      },
+      {
+        "id": "teachers",
+        "public": true,
+        "file_size_limit": 5242880,
+        "allowed_mime_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ]
+      },
+      {
+        "id": "gallery",
+        "public": true,
+        "file_size_limit": 26214400,
+        "allowed_mime_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "video/mp4",
+          "video/webm"
+        ]
+      },
+      {
+        "id": "admission-documents",
+        "public": false,
+        "file_size_limit": 10485760,
+        "allowed_mime_types": [
+          "application/pdf",
+          "image/jpeg",
+          "image/png"
+        ]
+      },
+      {
+        "id": "academic-documents",
+        "public": true,
+        "file_size_limit": 10485760,
+        "allowed_mime_types": [
+          "application/pdf"
+        ]
+      },
+      {
+        "id": "website-media",
+        "public": true,
+        "file_size_limit": 5242880,
+        "allowed_mime_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ]
+      }
+    ],
+    "uniqueTriggerCount": 17,
+    "adminPrivileges": {
+      "authenticated_insert": false,
+      "authenticated_role_update": false,
+      "authenticated_display_name_update": true
+    },
+    "logPrivileges": {
+      "authenticated_delete": false,
+      "authenticated_insert": false,
+      "authenticated_update": false
+    },
+    "privateSchemaAccess": {
+      "anon": false,
+      "authenticated": false
+    },
+    "restrictedFunctions": [
+      {
+        "name": "consume_rate_limit",
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "security_definer": true,
+        "service_role_execute": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "is_admin",
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": true,
+        "security_definer": true,
+        "service_role_execute": true,
+        "authenticated_execute": true
+      },
+      {
+        "name": "lookup_result",
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "security_definer": true,
+        "service_role_execute": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "submit_admission",
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "security_definer": true,
+        "service_role_execute": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "track_admission",
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "security_definer": true,
+        "service_role_execute": true,
+        "authenticated_execute": false
+      }
+    ],
+    "recordCounts": {
+      "admins": 0,
+      "results": 0,
+      "settings": 1,
+      "students": 0,
+      "admissions": 0
+    },
+    "storageRls": true
+  },
+  "security_advisories": [
+    {
+      "name": "anon_security_definer_function_executable",
+      "title": "Public Can Execute SECURITY DEFINER Function",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects `SECURITY DEFINER` functions that are callable without signing in. Revoke `EXECUTE`, switch the function to `SECURITY INVOKER`, or move it out of your exposed API schema if it is not meant to be public.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable",
+      "count": 2,
+      "findings": [
+        {
+          "detail": "Function `public.is_admin()` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/is_admin`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "is_admin",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-21T21:48:05.453Z"
+        },
+        {
+          "detail": "Function `public.rls_auto_enable()` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/rls_auto_enable`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "rls_auto_enable",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-21T21:48:05.453Z"
+        }
+      ]
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "title": "Signed-In Users Can Execute SECURITY DEFINER Function",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects `SECURITY DEFINER` functions that are callable by signed-in users. Revoke `EXECUTE`, switch the function to `SECURITY INVOKER`, or move it out of your exposed API schema if signed-in users should not call it.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+      "count": 2,
+      "findings": [
+        {
+          "detail": "Function `public.is_admin()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/is_admin`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "is_admin",
+            "schema": "public",
+            "language": "sql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-21T21:48:05.453Z"
+        },
+        {
+          "detail": "Function `public.rls_auto_enable()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/rls_auto_enable`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+          "metadata": {
+            "name": "rls_auto_enable",
+            "schema": "public",
+            "language": "plpgsql",
+            "arguments": "",
+            "security_definer": true
+          },
+          "observed_at": "2026-11-21T21:48:05.453Z"
+        }
+      ]
+    }
+  ],
+  "performance_advisories": [
+    {
+      "name": "unindexed_foreign_keys",
+      "title": "Unindexed foreign keys",
+      "level": "INFO",
+      "facing": "EXTERNAL",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "description": "Identifies foreign key constraints without a covering index, which can impact database performance.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys",
+      "count": 2,
+      "findings": [
+        {
+          "detail": "Table \\`public.attendance\\` has a foreign key \\`attendance_class_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "attendance",
+            "type": "table",
+            "schema": "public",
+            "fkey_name": "attendance_class_id_fkey",
+            "fkey_columns": [
+              3
+            ]
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        },
+        {
+          "detail": "Table \\`public.exams\\` has a foreign key \\`exams_class_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "exams",
+            "type": "table",
+            "schema": "public",
+            "fkey_name": "exams_class_id_fkey",
+            "fkey_columns": [
+              5
+            ]
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        }
+      ]
+    },
+    {
+      "name": "unused_index",
+      "title": "Unused Index",
+      "level": "INFO",
+      "facing": "EXTERNAL",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "description": "Detects if an index has never been used and may be a candidate for removal.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+      "count": 3,
+      "findings": [
+        {
+          "detail": "Index \\`notices_publication\\` on table \\`public.notices\\` has not been used",
+          "metadata": {
+            "name": "notices",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        },
+        {
+          "detail": "Index \\`students_class\\` on table \\`public.students\\` has not been used",
+          "metadata": {
+            "name": "students",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        },
+        {
+          "detail": "Index \\`results_exam\\` on table \\`public.results\\` has not been used",
+          "metadata": {
+            "name": "results",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        }
+      ]
+    },
+    {
+      "name": "multiple_permissive_policies",
+      "title": "Multiple Permissive Policies",
+      "level": "WARN",
+      "facing": "EXTERNAL",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+      "count": 7,
+      "findings": [
+        {
+          "detail": "Table \\`public.academic_documents\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{admin_all,published_read}\\`",
+          "metadata": {
+            "name": "academic_documents",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        },
+        {
+          "detail": "Table \\`public.content\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{admin_all,published_read}\\`",
+          "metadata": {
+            "name": "content",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        },
+        {
+          "detail": "Table \\`public.events\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{admin_all,published_read}\\`",
+          "metadata": {
+            "name": "events",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        },
+        {
+          "detail": "Table \\`public.gallery\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{admin_all,published_read}\\`",
+          "metadata": {
+            "name": "gallery",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        },
+        {
+          "detail": "Table \\`public.notices\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{admin_all,visible_notices}\\`",
+          "metadata": {
+            "name": "notices",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        },
+        {
+          "detail": "Table \\`public.people\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{admin_all,published_read}\\`",
+          "metadata": {
+            "name": "people",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        },
+        {
+          "detail": "Table \\`public.settings\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{admin_all,read_settings}\\`",
+          "metadata": {
+            "name": "settings",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-21T21:48:05.674Z"
+        }
+      ]
+    }
+  ]
+}

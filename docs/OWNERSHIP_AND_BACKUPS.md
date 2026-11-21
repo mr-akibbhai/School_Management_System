@@ -1,19 +1,19 @@
 # Ownership and recovery checklist
 
-No account, repository or domain has been created or transferred by this execution. The source is stored in your local workspace. Complete this checklist in your own accounts during connection and release.
+Current ownership/connection status is in [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md). Existing owner GitHub and exact school Supabase project are used; no domain was purchased. Free-plan backup inspection confirmed automatic backups excluded and PITR paid; no backup or restore was performed. The following table is the historical handover checklist; the current integration report supersedes its pending connection entries.
 
 | Asset          | Owner-controlled evidence to retain                                 | Status                                          |
 | -------------- | ------------------------------------------------------------------- | ----------------------------------------------- |
-| Source         | Local project, lockfile, private GitHub repository in your account  | Local source delivered; remote pending          |
-| Hosting        | Your Vercel project, billing contact and project access             | Pending connection                              |
-| PostgreSQL     | Your Supabase organization/project, database password               | Pending connection                              |
-| Auth           | Your Supabase Auth configuration and admin mailbox                  | Pending connection                              |
-| Storage        | Six buckets and object copies in your project                       | Migrations supplied; live application pending   |
+| Source         | Local project, lockfile, private GitHub repository in your account  | Existing owner repository; local integration changes          |
+| Hosting        | Your Vercel project, billing contact and project access             | Not deployed                                    |
+| PostgreSQL | School_Management_System, nfoohhydncflcbegrxbz | Connected; migrations verified |
+| Auth | Hosted configuration and owner mailbox | Configured; invitation pending Resend |
+| Storage        | Six buckets and object copies in your project                       | Six live buckets and policies verified   |
 | Domain         | Registrar login, renewal information and DNS access                 | Not purchased or changed                        |
 | Super Admin    | Your sole invited email; password chosen by you                     | Not created                                     |
-| Configuration  | Frontend environment values and protected server secrets            | Template supplied; values not requested in chat |
+| Configuration  | Frontend environment values and protected server secrets            | Local public values/server secrets configured |
 | Backup         | Encrypted database/auth/storage copies and tested restore procedure | Owner setup pending                             |
-| Email/security | Your SMTP provider and Turnstile widget                             | Pending connection                              |
+| Email/security | Resend; optional Turnstile | SMTP pending domain; CAPTCHA deferred |
 
 ## Backup procedure
 

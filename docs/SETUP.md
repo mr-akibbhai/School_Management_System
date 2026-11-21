@@ -1,10 +1,10 @@
 # Owner setup and deployment
 
-These steps have been prepared, not executed against your accounts. Use a staging project first. You can do all routine content work in the dashboard once setup and acceptance testing are complete.
+Current school state is recorded in [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md): all four migrations are already tracked/applied, functions are active and local frontend/Auth configuration is connected. Do not replay migrations on nfoohhydncflcbegrxbz. SMTP and invitation are explicitly deferred. The steps below describe future/fresh-checkout setup; use an isolated staging project for acceptance. You can do all routine content work in the dashboard once setup and acceptance testing are complete.
 
 ## 1. Your accounts
 
-Use your own GitHub repository, Supabase organization/project, Vercel team/project, domain registrar, Cloudflare Turnstile widget and SMTP provider. Keep account recovery under school control and enable account MFA. Do not send passwords or service-role keys through chat.
+Use your own GitHub repository, Supabase organization/project, Vercel team/project, domain registrar and SMTP provider. Cloudflare Turnstile is optional and deferred. Keep account recovery under school control and enable account MFA. Do not send passwords or service-role keys through chat.
 
 ## 2. Supabase database
 
@@ -18,13 +18,14 @@ Only the `display_name` column is user-editable on the admin membership table. A
 
 ## 3. Frontend environment
 
-Copy `.env.example` to ignored `.env` locally. In Vercel set the same frontend environment values in the project settings. Redeploy when they change: Vite embeds these at build time.
+For a new checkout, copy `.env.example` to ignored `.env` locally; the existing local checkout already uses ignored `.env.local`. In Vercel set the same frontend environment values in the project settings. Redeploy when they change: Vite embeds these at build time.
 
 | Variable                        | Value                                         | Secret?                    |
 | ------------------------------- | --------------------------------------------- | -------------------------- |
 | `VITE_SUPABASE_URL`             | Your project HTTPS URL                        | No                         |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key (or legacy anon key) | No; security relies on RLS |
-| `VITE_TURNSTILE_SITE_KEY`       | Turnstile widget public site key              | No                         |
+| `VITE_TURNSTILE_SITE_KEY`       | Optional site key; blank currently            | No                         |
+| `VITE_AUTH_CAPTCHA_ENABLED`      | false currently; match hosted Auth setting   | No                         |
 | `VITE_SITE_URL`                 | Exact final frontend origin                   | No                         |
 
 `VITE_SITE_URL` generates sitemap/robots URLs at build time; do not put a path or localhost here for a production build. Initial placeholders must be replaced before release. Schools with different branding can change logo, hero image, names and text in the dashboard.
@@ -44,18 +45,19 @@ Configure these **server-side Supabase Edge Function secrets**, through your pro
 
 | Secret                 | Purpose                                                         |
 | ---------------------- | --------------------------------------------------------------- |
-| `TURNSTILE_SECRET_KEY` | Server verification of CAPTCHA tokens                           |
+| `TURNSTILE_SECRET_KEY` | Optional: required only with CAPTCHA_MODE=required; verification of tokens                           |
 | `TURNSTILE_HOSTNAMES`  | Comma-separated exact allowed hostnames, without scheme/port    |
 | `ALLOWED_ORIGINS`      | Comma-separated exact origins with scheme and port where needed |
 | `RATE_LIMIT_SALT`      | Random strong secret for request-key hashing                    |
+| `CAPTCHA_MODE`          | disabled currently; required for later Turnstile enforcement     |
 
-Supabase provides `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_ANON_KEY` inside Edge Functions. These server secrets never belong in the frontend. On a self-hosted runtime supply them securely. For production use your real Turnstile keys and hostname restrictions; Cloudflare's documented test keys are only for staging tests. No CAPTCHA bypass mode is in this application.
+Supabase provides `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_ANON_KEY` inside Edge Functions. These server secrets never belong in the frontend. On a self-hosted runtime supply them securely. For production use your real Turnstile keys and hostname restrictions; Cloudflare's documented test keys are only for staging tests. CAPTCHA is optional: the owner selected server CAPTCHA_MODE=disabled, with blank frontend site key and VITE_AUTH_CAPTCHA_ENABLED=false. Validation, rate limits and honeypot/timing checks remain mandatory. For later enablement, configure real server secret/hostnames and frontend site key, then set CAPTCHA_MODE=required. Auth CAPTCHA must separately match the hosted setting and VITE_AUTH_CAPTCHA_ENABLED flag. Missing CAPTCHA_MODE defaults to required.
 
 All public operations share a limit of 20 requests per forwarded IP per hour. A shared school/mobile-network IP may encounter this limit. Tune it after staging/load testing; the platform must supply a trustworthy `x-forwarded-for` header. Do not expose the function behind a proxy that trusts a spoofed client header.
 
 ## 5. Create the first Super Admin
 
-No password is generated by the source. Two owner-controlled setup methods are supported:
+The owner explicitly deferred the invitation until Resend has a verified sending domain. Do not execute either method until that condition and owner authorization are satisfied. No password is generated by the source. Two owner-controlled setup methods are supported:
 
 **Dashboard method:** Invite your chosen email from Supabase Authentication. Copy that invited user's UUID and, in the SQL editor, run this once after replacing the placeholder:
 
@@ -78,7 +80,7 @@ If the invite reaches Auth but role creation fails, check the `admins` table in 
 
 ## 6. GitHub and Vercel
 
-Create a private repository in your own GitHub account. This project currently sits inside an existing local Git workspace; use that repository or copy the project folder to your own clean checkout. Review `.gitignore` and staged files before pushing. Never include `.env`, secrets or real student exports in source control.
+Use the existing exact repository mr-akibbhai/School_Management_System. Do not create another repository. Review `.gitignore` and staged files before pushing. Never include `.env`, secrets or real student exports in source control.
 
 Import your repository into your Vercel account. For the selected `mr-akibbhai/School_Management_System` repository, the application is at the repository root: leave **Root Directory** at its default. Choose Vite, Build Command `npm run build`, Output Directory `dist`, Install Command `npm ci`, and a supported current Node version (22.12+). Add the frontend variables above. `vercel.json` provides SPA routing and response security headers. Deploy first to a staging URL, add that exact origin to Supabase/Turnstile settings, and execute the acceptance checklist.
 

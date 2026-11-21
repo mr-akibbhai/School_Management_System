@@ -1,6 +1,6 @@
 # Testing report and release acceptance
 
-Date: 22 November 2026 (Asia/Dhaka). No live production access was supplied. These results distinguish local checks from real service integration.
+Updated 22 November 2026: 4 frontend tests, 54 isolated database checks, 17 isolated Edge tests, both Edge typechecks and production build passed. All 21 live smoke checks passed. See INTEGRATION_STATUS.md and live-readonly-smoke.json. Owner Auth/admin acceptance remains pending. Visual checks below are historical setup-mode checks; the latest connected visual/mobile recheck encountered a browser localhost connection reset despite native HTTP 200.
 
 ## Observed passes
 
@@ -8,7 +8,7 @@ Date: 22 November 2026 (Asia/Dhaka). No live production access was supplied. The
 | -------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | TypeScript + Vite production build           | Passed                                                                       | Frontend bundle, not backend deployment                                                                                                        |
 | Public submission/schema tests               | 4 test cases passed                                                          | Admission coercion/consent/date/phone/class validation, contact validation, unsafe URL rejection                                               |
-| PostgreSQL migration/security checks         | 45 checks passed | PGlite runs actual PostgreSQL SQL/policies with a test Auth identity function and a minimal Storage schema, not the complete Supabase platform |
+| PostgreSQL migration/security checks         | 54 checks passed | PGlite runs actual PostgreSQL SQL/policies with a test Auth identity function and a minimal Storage schema, not the complete Supabase platform |
 | Supabase Edge Function typecheck             | Passed for both functions using Deno                                         | Compilation/import/types, not remote runtime behavior                                                                                          |
 | npm dependency audit                         | Zero findings after updates                                                  | Registry audit at execution time, not a security certification                                                                                 |
 | Public page browser smoke checks             | Passed                                                                       | Home, About, Administration, Teachers, Academics, Admission, Notices, Results, Gallery, News, Downloads, Contact                               |
@@ -39,10 +39,10 @@ Use a compatible current Node version. Deno can be installed from its official d
 
 ## Required connected-system acceptance
 
-All items below are **pending**. Run with synthetic records in the owner's staging project first, then verify the final production configuration. Do not mark an item passed from the local tests above.
+The original checklist follows. Database setup/history and documented live negative checks are complete; owner Auth/email, positive live CRUD/uploads and final deployment checks remain pending. Run with synthetic records in the owner's staging project first, then verify the final production configuration. Do not mark an item passed from the local tests above.
 
-1. Apply all three migrations on real Supabase; inspect policies/roles/constraints and Security Advisor. Confirm no exposed private schema or service key in the built JS.
-2. Configure SMTP, redirects and Turnstile; invite the owner, set a password, log in and log out. Reopen protected URLs after logout. Try a signed-in non-admin account. Test expired sessions and network failures.
+1. Existing database setup is complete; never rerun applied migrations. Review policies/roles/constraints and advisors after future changes. Confirm no exposed private schema or service key in the built JS.
+2. Complete deferred Resend SMTP and approved production redirects (Turnstile optional); invite the owner, set a password, log in and log out. Reopen protected URLs after logout. Try a signed-in non-admin account. Test expired sessions and network failures.
 3. In every admin management area, create a record, reload it, edit it, preview it and delete the synthetic record where deletion is supported. Verify database rows and audit events. Check foreign-key errors are understandable. Logs are deliberately read-only; settings/profile are singleton updates.
 4. Change school names, logo, contact information, welcome/about/principal content, and homepage section order/visibility. Verify the public site reflects the saved values and undo the synthetic changes. Verify both languages and long Bengali content.
 5. Publish/unpublish a notice; pin/unpin it; schedule another in the future. Verify search/category filtering, direct detail links and PDF attachment. Verify anonymous users cannot read future/draft rows via REST.

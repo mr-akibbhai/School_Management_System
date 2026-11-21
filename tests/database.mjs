@@ -7,7 +7,10 @@ await db.exec(
 );
 await db.exec(
   await readFile(
-    new URL("../supabase/migrations/202611220001_school.sql", import.meta.url),
+    new URL(
+      "../supabase/migrations/20261121214713_school.sql",
+      import.meta.url,
+    ),
     "utf8",
   ),
 );
@@ -16,14 +19,17 @@ await db.exec(
 );
 await db.exec(
   await readFile(
-    new URL("../supabase/migrations/202611220002_storage.sql", import.meta.url),
+    new URL(
+      "../supabase/migrations/20261121214718_storage.sql",
+      import.meta.url,
+    ),
     "utf8",
   ),
 );
 await db.exec(
   await readFile(
     new URL(
-      "../supabase/migrations/202611220003_home_layout.sql",
+      "../supabase/migrations/20261121214730_home_layout.sql",
       import.meta.url,
     ),
     "utf8",
@@ -334,6 +340,91 @@ await role("anon", async () => {
   );
   checks++;
 });
+// A test-only equivalent helper lets us verify the permission cleanup locally.
+await role("authenticated", async () => {
+  await db.exec(
+    `insert into storage.objects(bucket_id,name) values('branding','synthetic-logo.png')`,
+  );
+});
+await db.exec(
+  `select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false)`,
+);
+await role("authenticated", async () => {
+  assert.equal(
+    (await db.query("select * from storage.objects")).rows.length,
+    0,
+  );
+  checks++;
+  assert.equal(
+    (
+      await db.query(
+        `delete from storage.objects where name='synthetic-logo.png' returning id`,
+      )
+    ).rows.length,
+    0,
+  );
+  checks++;
+  await forbidden(
+    `update public.admins set user_id='22222222-2222-4222-8222-222222222222'`,
+  );
+  await forbidden(`delete from public.admins`);
+});
+await db.exec(
+  `select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false)`,
+);
+await role("authenticated", async () => {
+  assert.equal(
+    (
+      await db.query(
+        `delete from storage.objects where name='synthetic-logo.png' returning id`,
+      )
+    ).rows.length,
+    1,
+  );
+  checks++;
+  assert.equal(
+    (
+      await db.query(
+        `select * from storage.objects where bucket_id='admission-documents'`,
+      )
+    ).rows.length,
+    1,
+  );
+  checks++;
+});
+await db.exec(
+  `create function public.rls_auto_enable() returns boolean language sql security definer as $$select true$$;grant execute on function public.rls_auto_enable() to anon,authenticated;`,
+);
+await db.exec(
+  await readFile(
+    new URL(
+      "../supabase/migrations/20261121220521_covering_indexes_and_event_helper_permissions.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+);
+for (const roleName of ["anon", "authenticated"]) {
+  assert.equal(
+    (
+      await db.query(
+        `select has_function_privilege($1,'public.rls_auto_enable()','EXECUTE') as allowed`,
+        [roleName],
+      )
+    ).rows[0].allowed,
+    false,
+  );
+  checks++;
+}
+assert.equal(
+  (
+    await db.query(
+      `select count(*)::integer as count from pg_indexes where indexname in ('attendance_class_id_idx','exams_class_id_idx')`,
+    )
+  ).rows[0].count,
+  2,
+);
+checks++;
 await db.close();
 console.log(
   `PASS: ${checks} database authorization, privacy, integrity and rate-limit checks (PGlite; not live Supabase).`,

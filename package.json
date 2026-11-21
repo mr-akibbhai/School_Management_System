@@ -9,6 +9,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:db": "node tests/database.mjs",
+    "test:edge": "npx --yes deno test tests/edge_test.ts",
+    "check:edge": "npx --yes deno check supabase/functions/public-api/index.ts supabase/functions/upload/index.ts",
     "setup:admin": "node scripts/bootstrap-admin.mjs"
   },
   "engines": {

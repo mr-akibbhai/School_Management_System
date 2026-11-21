@@ -54,6 +54,10 @@ import {
 import type { Session } from "@supabase/supabase-js";
 import {
   admissionSchema,
+  authCaptchaEnabled,
+  incomingAuthLinkType,
+  abuseFields,
+  publicCaptchaRequired,
   contactSchema,
   db,
   localeDate,
@@ -194,6 +198,24 @@ function Photo({
 }
 
 export default function App() {
+  const navigate = useNavigate(),
+    authLinkHandled = useRef(false);
+  useEffect(() => {
+    if (!db) return;
+    const {
+      data: { subscription },
+    } = db.auth.onAuthStateChange((event, session) => {
+      if (
+        !authLinkHandled.current &&
+        (event === "PASSWORD_RECOVERY" ||
+          (session && incomingAuthLinkType === "invite"))
+      ) {
+        authLinkHandled.current = true;
+        navigate("/admin/reset-password", { replace: true });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [navigate]);
   const [lang, setLang] = useState<Lang>(() =>
     localStorage.getItem("school-language") === "en" ? "en" : "bn",
   );
@@ -1375,6 +1397,35 @@ function Field({
     </label>
   );
 }
+function AbuseProtection({
+  onToken,
+  resetKey,
+}: {
+  onToken: (v: string) => void;
+  resetKey: number;
+}) {
+  const [startedAt, setStartedAt] = useState(() => Date.now());
+  useEffect(() => setStartedAt(Date.now()), [resetKey]);
+  return (
+    <>
+      <div className="honeypot" aria-hidden="true">
+        <label>
+          Company website
+          <input
+            name="company_website"
+            tabIndex={-1}
+            autoComplete="off"
+            maxLength={2000}
+          />
+        </label>
+      </div>
+      <input type="hidden" name="form_started_at" value={startedAt} />
+      {publicCaptchaRequired && (
+        <Captcha onToken={onToken} resetKey={resetKey} />
+      )}
+    </>
+  );
+}
 function Admission() {
   const { data, t, lang } = useSchool();
   const [tab, setTab] = useState("apply"),
@@ -1401,6 +1452,7 @@ function Admission() {
         tab === "apply" ? "admission" : "track",
         payload,
         token,
+        abuseFields(values),
       );
       setAnswer(response);
     } catch (e) {
@@ -1578,8 +1630,11 @@ function Admission() {
                   maxLength={32}
                 />
               )}
-              <Captcha onToken={setToken} resetKey={reset} />
-              <button className="button" disabled={busy || !token || !db}>
+              <AbuseProtection onToken={setToken} resetKey={reset} />
+              <button
+                className="button"
+                disabled={busy || (publicCaptchaRequired && !token) || !db}
+              >
                 {busy ? (
                   <LoaderCircle className="spin" size={18} />
                 ) : (
@@ -1608,14 +1663,9 @@ function Results() {
     setBusy(true);
     setError("");
     setResult(null);
+    const values = Object.fromEntries(new FormData(e.currentTarget));
     try {
-      setResult(
-        await publicCall(
-          "result",
-          Object.fromEntries(new FormData(e.currentTarget)),
-          token,
-        ),
-      );
+      setResult(await publicCall("result", values, token, abuseFields(values)));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -1659,8 +1709,11 @@ function Results() {
               minLength={32}
               maxLength={32}
             />
-            <Captcha onToken={setToken} resetKey={reset} />
-            <button className="button" disabled={!db || !token || busy}>
+            <AbuseProtection onToken={setToken} resetKey={reset} />
+            <button
+              className="button"
+              disabled={!db || (publicCaptchaRequired && !token) || busy}
+            >
               {busy ? (
                 <LoaderCircle className="spin" size={18} />
               ) : (
@@ -1752,14 +1805,16 @@ function Contact() {
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
+    const values = Object.fromEntries(new FormData(form));
     setBusy(true);
     setError("");
     setSent(false);
     try {
       await publicCall(
         "contact",
-        contactSchema.parse(Object.fromEntries(new FormData(form))),
+        contactSchema.parse(values),
         token,
+        abuseFields(values),
       );
       setSent(true);
       form.reset();
@@ -1873,8 +1928,11 @@ function Contact() {
               minLength={10}
               maxLength={4000}
             />
-            <Captcha onToken={setToken} resetKey={reset} />
-            <button className="button" disabled={busy || !token || !db}>
+            <AbuseProtection onToken={setToken} resetKey={reset} />
+            <button
+              className="button"
+              disabled={busy || (publicCaptchaRequired && !token) || !db}
+            >
               <Mail size={18} />
               {busy
                 ? t("পাঠানো হচ্ছে…", "Sending…")
@@ -2022,17 +2080,27 @@ function AdminShell({ setLang }: { setLang: (v: Lang) => void }) {
     [authError, setAuthError] = useState("");
   const navigate = useNavigate(),
     location = useLocation();
+  const verifiedUser = useRef<string | null>(null),
+    verificationSequence = useRef(0);
   useEffect(() => {
     if (!db) return;
     let live = true;
     const verify = async (s: Session | null) => {
       if (!live) return;
-      setChecking(true);
+      const sequence = ++verificationSequence.current;
+      const userChanged = verifiedUser.current !== (s?.user.id || null);
+      if (userChanged || !s) {
+        setChecking(true);
+        setAuthorized(false);
+      }
       setSession(s);
-      setAuthorized(false);
       if (s) {
-        const result = await db!.rpc("is_admin");
-        if (live) {
+        const result = await Promise.resolve(db!.rpc("is_admin")).catch(() => ({
+          data: false,
+          error: true,
+        }));
+        if (live && sequence === verificationSequence.current) {
+          verifiedUser.current = s.user.id;
           setAuthorized(result.data === true);
           setAuthError(
             result.error
@@ -2042,10 +2110,21 @@ function AdminShell({ setLang }: { setLang: (v: Lang) => void }) {
                 : "This account is not the school administrator.",
           );
         }
+      } else {
+        verifiedUser.current = null;
+        setAuthError("");
       }
-      if (live) setChecking(false);
+      if (live && sequence === verificationSequence.current) setChecking(false);
     };
-    void db.auth.getSession().then(({ data }) => verify(data.session));
+    void db.auth
+      .getSession()
+      .then(({ data }) => verify(data.session))
+      .catch(() => {
+        if (live) {
+          setChecking(false);
+          setAuthError("Unable to restore your session. Please sign in again.");
+        }
+      });
     const {
       data: { subscription },
     } = db.auth.onAuthStateChange((_event, s) => {
@@ -2146,8 +2225,9 @@ function AdminShell({ setLang }: { setLang: (v: Lang) => void }) {
             <button
               className="text-button"
               onClick={async () => {
-                await db!.auth.signOut();
-                navigate("/admin/login");
+                const { error } = await db!.auth.signOut();
+                if (error) setAuthError("Sign out failed. Please try again.");
+                else navigate("/admin/login");
               }}
             >
               <LogOut size={17} />
@@ -2156,6 +2236,7 @@ function AdminShell({ setLang }: { setLang: (v: Lang) => void }) {
           </div>
         </div>
         <main className="admin-content">
+          {authError && <Message error>{authError}</Message>}
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/profile" element={<Profile session={session} />} />
@@ -2188,6 +2269,8 @@ function AuthCard({
     [busy, setBusy] = useState(false),
     [forgot, setForgot] = useState(false);
   const navigate = useNavigate();
+  const [captchaToken, setCaptchaToken] = useState(""),
+    [captchaReset, setCaptchaReset] = useState(0);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
@@ -2198,6 +2281,10 @@ function AuthCard({
       if (!db)
         throw new Error(
           t("আগে Supabase সংযুক্ত করুন।", "Connect Supabase before signing in."),
+        );
+      if (authCaptchaEnabled && mode === "login" && !captchaToken)
+        throw new Error(
+          t("নিরাপত্তা যাচাই সম্পন্ন করুন।", "Complete the security verification."),
         );
       if (mode === "reset") {
         if (!session)
@@ -2221,7 +2308,10 @@ function AuthCard({
       } else if (forgot) {
         const result = await db.auth.resetPasswordForEmail(
           String(values.email),
-          { redirectTo: `${location.origin}/admin/reset-password` },
+          {
+            redirectTo: `${location.origin}/admin/reset-password`,
+            captchaToken: authCaptchaEnabled ? captchaToken : undefined,
+          },
         );
         if (result.error) throw result.error;
         setInfo(
@@ -2234,6 +2324,9 @@ function AuthCard({
         const result = await db.auth.signInWithPassword({
           email: String(values.email),
           password: String(values.password),
+          options: {
+            captchaToken: authCaptchaEnabled ? captchaToken : undefined,
+          },
         });
         if (result.error) throw result.error;
         navigate("/admin");
@@ -2242,6 +2335,8 @@ function AuthCard({
       setError((e as Error).message);
     } finally {
       setBusy(false);
+      setCaptchaToken("");
+      setCaptchaReset((v) => v + 1);
     }
   }
   return (
@@ -2271,6 +2366,14 @@ function AuthCard({
             {t(
               "সেটআপ প্রয়োজন। .env ফাইলে Supabase প্রকল্প সংযুক্ত করুন।",
               "Setup required. Connect your Supabase project in the .env file.",
+            )}
+          </Message>
+        )}
+        {mode === "reset" && !session && db && (
+          <Message error>
+            {t(
+              "এই ব্রাউজারে একটি বৈধ আমন্ত্রণ বা রিকভারি লিংক খুলুন। লিংকের মেয়াদ শেষ হলে নতুন লিংক নিন।",
+              "Open a valid invitation or recovery link in this browser. Request a new link if it expired.",
             )}
           </Message>
         )}
@@ -2305,7 +2408,18 @@ function AuthCard({
               autoComplete="new-password"
             />
           )}
-          <button className="button full" disabled={!db || busy}>
+          {mode === "login" && authCaptchaEnabled && (
+            <Captcha onToken={setCaptchaToken} resetKey={captchaReset} />
+          )}
+          <button
+            className="button full"
+            disabled={
+              !db ||
+              busy ||
+              (mode === "login" && authCaptchaEnabled && !captchaToken) ||
+              (mode === "reset" && !session)
+            }
+          >
             {busy ? <LoaderCircle className="spin" size={18} /> : null}
             {mode === "reset"
               ? t("পাসওয়ার্ড সংরক্ষণ", "Save password")
@@ -3375,6 +3489,8 @@ function UploadControl({
 }
 function Profile({ session }: { session: Session }) {
   const { t } = useSchool();
+  const [captchaToken, setCaptchaToken] = useState(""),
+    [captchaReset, setCaptchaReset] = useState(0);
   const [name, setName] = useState(""),
     [info, setInfo] = useState(""),
     [error, setError] = useState(""),
@@ -3452,6 +3568,9 @@ function Profile({ session }: { session: Session }) {
               const verify = await db!.auth.signInWithPassword({
                 email: session.user.email!,
                 password: String(v.current),
+                options: {
+                  captchaToken: authCaptchaEnabled ? captchaToken : undefined,
+                },
               });
               if (verify.error) throw verify.error;
               const result = await db!.auth.updateUser({
@@ -3464,6 +3583,8 @@ function Profile({ session }: { session: Session }) {
               setError((e as Error).message);
             } finally {
               setBusy(false);
+              setCaptchaToken("");
+              setCaptchaReset((v) => v + 1);
             }
           }}
         >
@@ -3490,7 +3611,13 @@ function Profile({ session }: { session: Session }) {
             minLength={12}
             autoComplete="new-password"
           />
-          <button className="button" disabled={busy}>
+          {authCaptchaEnabled && (
+            <Captcha onToken={setCaptchaToken} resetKey={captchaReset} />
+          )}
+          <button
+            className="button"
+            disabled={busy || (authCaptchaEnabled && !captchaToken)}
+          >
             {t("পাসওয়ার্ড পরিবর্তন", "Update password")}
           </button>
         </form>

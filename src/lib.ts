@@ -2,10 +2,20 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Capture only the non-secret flow type before Supabase consumes callback tokens.
+export const incomingAuthLinkType =
+  typeof window === "undefined"
+    ? null
+    : new URLSearchParams(window.location.hash.slice(1)).get("type");
 export const db =
   url && key
     ? createClient(url, key, {
-        auth: { detectSessionInUrl: true, flowType: "pkce" },
+        auth: {
+          detectSessionInUrl: true,
+          flowType: "pkce",
+          persistSession: true,
+          autoRefreshToken: true,
+        },
       })
     : null;
 export const admissionSchema = z.object({
@@ -59,31 +69,54 @@ export function textOf(
 }
 export async function rows(table: string, publicOnly = false) {
   if (!db) return [];
-  let q = db.from(table).select("*");
-  if (publicOnly) q = q.eq("published", true);
-  const { data, error } = await q.order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
-  return data as RecordRow[];
+  const records: RecordRow[] = [];
+  for (let offset = 0; ; offset += 500) {
+    let q = db.from(table).select("*");
+    if (publicOnly) q = q.eq("published", true);
+    const { data, error } = await q
+      .order("created_at", { ascending: false })
+      .order("id")
+      .range(offset, offset + 499);
+    if (error) throw new Error(error.message);
+    records.push(...(data || []));
+    if (!data || data.length < 500) return records;
+  }
 }
 export async function publicCall(
   action: string,
   payload: unknown,
   captcha: string,
+  protection: { company_website: string; form_started_at: number },
 ) {
   if (!db)
     throw new Error(
       "Database is not connected. Please try again after setup. / ডেটাবেস সংযুক্ত নেই।",
     );
   const { data, error } = await db.functions.invoke("public-api", {
-    body: { action, payload, captcha },
+    body: { action, payload, captcha, ...protection },
   });
-  if (error)
-    throw new Error(
-      "Request failed. Please check your details and try again. / অনুরোধ সফল হয়নি।",
-    );
-  if (data.error) throw new Error(data.error);
+  if (error) {
+    if (error.context instanceof Response) {
+      const body = await error.context.json().catch(() => null);
+      if (typeof body?.error === "string")
+        throw new Error(body.error.slice(0, 400));
+    }
+    throw new Error("Request failed. Please try again. / অনুরোধ সফল হয়নি।");
+  }
+  if (data?.error) throw new Error(String(data.error));
+  if (data === null || data === undefined)
+    throw new Error("No response received. Please try again.");
   return data;
 }
+export const authCaptchaEnabled =
+  import.meta.env.VITE_AUTH_CAPTCHA_ENABLED === "true";
+export const publicCaptchaRequired = Boolean(
+  import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim(),
+);
+export const abuseFields = (values: Record<string, FormDataEntryValue>) => ({
+  company_website: String(values.company_website || ""),
+  form_started_at: Number(values.form_started_at),
+});
 export const localeDate = (v: string, l: Lang) =>
   new Date(v).toLocaleDateString(l === "bn" ? "bn-BD" : "en-GB", {
     day: "numeric",

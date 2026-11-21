@@ -4,7 +4,7 @@ Updated: 22 November 2026 (Asia/Dhaka).
 
 ## Current milestone
 
-Local application source and database/security foundation implemented. User has existing accounts and explicitly plans to connect them later. No live Supabase connection or deployment is claimed. This is not yet a production acceptance sign-off.
+The confirmed school backend is connected. Migrations were preserved/reconciled and one additive hardening migration applied. Both Edge Functions are active, local configuration is connected and Auth settings hardened. Resend and the sole owner invitation remain pending by explicit owner choice. No Vercel deployment occurred. See docs/INTEGRATION_STATUS.md for current verification and limitations.
 
 ## Implemented
 
@@ -23,18 +23,18 @@ Local application source and database/security foundation implemented. User has 
 
 ## Database changes
 
-Local verification: production build passed; 4 form/schema test cases passed; 45 PostgreSQL authorization/privacy/integrity checks passed; both Edge Functions passed Deno typechecking; npm audit reported zero findings. Browser checks covered public routes, setup-mode protected routing, language persistence, desktop layout and 390 px mobile navigation. See `docs/TESTING.md` for limits and the pending live acceptance matrix.
+Local verification: production build passed; 4 form/schema test cases passed; 54 PostgreSQL authorization/privacy/integrity checks passed; both Edge Functions passed Deno typechecking; npm audit reported zero findings. Browser checks covered public routes, setup-mode protected routing, language persistence, desktop layout and 390 px mobile navigation. See `docs/TESTING.md` for limits and the pending live acceptance matrix.
 
-1. `202611220001_school.sql`: application schema, single admin membership, RLS/grants, audit/validation triggers, private request limits and service-only public-operation functions.
-2. `202611220002_storage.sql`: six buckets with size/MIME limits and administrator policies.
-3. `202611220003_home_layout.sql`: editable home-section list and admin-profile audit trigger.
+1. `20261121214713_school.sql`: application schema, single admin membership, RLS/grants, audit/validation triggers, private request limits and service-only public-operation functions.
+2. `20261121214718_storage.sql`: six buckets with size/MIME limits and administrator policies.
+3. `20261121214730_home_layout.sql`: editable home-section list and admin-profile audit trigger.
 
 All migrations are intended for a fresh project and tracked in order. Do not manually reapply them to an existing database. Do not use development test fixtures as production data.
 
 ## Pending before production release
 
-- Connect the owner's Supabase project, apply migrations and deploy Edge Functions.
-- Configure production SMTP, Turnstile hostname restrictions, function secrets, exact frontend origins and Auth callback allowlist.
+- Database/Storage migrations are complete on the confirmed new school project. Both Edge Functions are active; do not rerun the applied migrations.
+- Configure Resend after a verified owner domain is supplied; CAPTCHA is optional/deferred. Production origins and callbacks await the approved hosting URL.
 - Invite the sole owner-selected admin and verify email/password setup and recovery in the real browser.
 - Test every admin module with the real Auth/PostgREST/Storage/Edge runtime, including CRUD, publication, uploads and unauthorized users.
 - Enter verified school details, required translations, grading/admission policy and consented images; remove all placeholders.
@@ -52,13 +52,13 @@ All migrations are intended for a fresh project and tracked in order. Do not man
 - Approval of an application does not automatically enroll a student; administrator verifies and creates the student record explicitly.
 - No bulk marks/attendance import, auto-calculated GPA, automated email responses or billing subsystem; these were not assumed as school policy.
 - Public content refreshes on app load, window focus and admin saves. Realtime push updates to other open browsers are not implemented.
-- Record/file lists use the platform's default page-size limits; server pagination should be added before larger deployments (over 1,000 records/files).
+- Database reads page in batches of 500; file lists and very large datasets still need a dedicated pagination UX before scale.
 - Modal deletion dialogs require further keyboard focus-trap testing during acceptance.
 
 ## Deployment status
 
-Not deployed. No paid services purchased and no account credentials invented or exposed. Live account connection intentionally awaits the owner. Source destination: `https://github.com/mr-akibbhai/School_Management_System`, branch `main`, with the application at the repository root. Upload preparation includes an expanded `.gitignore` and a staged-file credential scanner. The old SMSA Supabase project is outside the scope of this school project and must not be connected or modified.
+Not deployed. No paid services purchased and no account credentials invented or exposed. The school backend is connected; owner invitation intentionally awaits Resend. Source destination: `https://github.com/mr-akibbhai/School_Management_System`, branch `main`, with the application at the repository root. Upload preparation includes an expanded `.gitignore` and a staged-file credential scanner. The old SMSA Supabase project is outside the scope of this school project and must not be connected or modified.
 
 ## Next steps
 
-Use `docs/SETUP.md` with a staging Supabase project. Complete `docs/TESTING.md` against the real connected system. Resolve any integration errors, then publish only under the owner's accounts and verify the production URL. Preserve this progress file across phases.
+Follow docs/INTEGRATION_STATUS.md for current state, migration history, tests and remaining owner actions. No reset or migration replay is needed. Preserve this progress file across phases.
