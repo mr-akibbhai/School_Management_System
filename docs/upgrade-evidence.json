@@ -1,0 +1,82 @@
+{
+  "verified_date": "2026-11-22",
+  "project_name": "School_Management_System",
+  "project_ref": "nfoohhydncflcbegrxbz",
+  "migrations": [
+    { "version": "20261121214713", "name": "school" },
+    { "version": "20261121214718", "name": "storage" },
+    { "version": "20261121214730", "name": "home_layout" },
+    {
+      "version": "20261121220521",
+      "name": "covering_indexes_and_event_helper_permissions"
+    },
+    { "version": "20261122075126", "name": "teacher_academics" },
+    { "version": "20261122075128", "name": "result_workflow" },
+    { "version": "20261122075129", "name": "optional_student_birth_date" },
+    { "version": "20261122075518", "name": "account_audit_and_history" },
+    { "version": "20261122080011", "name": "academic_identity_guards" },
+    { "version": "20261122081218", "name": "withdrawal_marks_integrity" }
+  ],
+  "verification": {
+    "buckets": [
+      { "name": "academic-documents", "public": true },
+      { "name": "admission-documents", "public": false },
+      { "name": "branding", "public": true },
+      { "name": "gallery", "public": true },
+      { "name": "student-photos", "public": false },
+      { "name": "teacher-private", "public": false },
+      { "name": "teachers", "public": true },
+      { "name": "website-media", "public": true }
+    ],
+    "students": 0,
+    "auth_users": 0,
+    "super_admins": 0,
+    "public_tables": 37,
+    "public_indexes": 88,
+    "anon_save_marks": false,
+    "public_policies": 75,
+    "secondary_admins": 0,
+    "storage_policies": 3,
+    "teacher_accounts": 0,
+    "birth_date_nullable": "YES",
+    "public_foreign_keys": 38,
+    "anon_invitation_finalize": false,
+    "public_tables_without_rls": 0,
+    "authenticated_invitation_finalize": false,
+    "authenticated_legacy_result_insert": false
+  },
+  "security_advisories": [
+    {
+      "name": "anon_security_definer_function_executable",
+      "level": "WARN",
+      "count": 2,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "count": 19,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable"
+    }
+  ],
+  "performance_advisories": [
+    {
+      "name": "auth_rls_initplan",
+      "level": "WARN",
+      "count": 6,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan"
+    },
+    {
+      "name": "unused_index",
+      "level": "INFO",
+      "count": 19,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index"
+    },
+    {
+      "name": "multiple_permissive_policies",
+      "level": "WARN",
+      "count": 28,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies"
+    }
+  ]
+}

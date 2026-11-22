@@ -256,7 +256,8 @@ Deno.test("public: result lookup sends only expected identifiers", async () => {
 });
 function uploadFixture() {
   let valid = true,
-    admin = true;
+    admin = true,
+    role = "none";
   const uploads: { bucket: string; path: string }[] = [];
   const handler = createUploadHandler({
     env: (name) => config[name],
@@ -267,7 +268,10 @@ function uploadFixture() {
           error: null,
         }),
       },
-      rpc: async () => ({ data: admin, error: null }),
+      rpc: async (name) => ({
+        data: name === "school_role" ? role : admin,
+        error: null,
+      }),
       storage: {
         from: (bucket) => ({
           upload: async (path) => {
@@ -286,6 +290,7 @@ function uploadFixture() {
     uploads,
     valid: (v: boolean) => (valid = v),
     admin: (v: boolean) => (admin = v),
+    role: (v: string) => (role = v),
   };
 }
 function fileRequest(
@@ -385,5 +390,41 @@ Deno.test(
       400,
     );
     equal(f.uploads.length, 0);
+  },
+);
+
+Deno.test(
+  "upload: teacher can upload own private photograph but no public or student files",
+  async () => {
+    const f = uploadFixture();
+    f.admin(false);
+    f.role("pending");
+    const png = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+    const r = await f.handler(fileRequest("teacher-private", "image/png", png));
+    equal(r.status, 200);
+    equal((await r.json()).url, null);
+    equal(
+      (await f.handler(fileRequest("student-photos", "image/png", png))).status,
+      403,
+    );
+    equal(
+      (await f.handler(fileRequest("branding", "image/png", png))).status,
+      403,
+    );
+  },
+);
+Deno.test(
+  "upload: student photographs remain private even for Admin",
+  async () => {
+    const f = uploadFixture();
+    const r = await f.handler(
+      fileRequest(
+        "student-photos",
+        "image/png",
+        new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
+      ),
+    );
+    equal(r.status, 200);
+    equal((await r.json()).url, null);
   },
 );

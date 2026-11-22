@@ -1,5 +1,7 @@
 # Development progress
 
+**Current upgrade (22 November 2026):** See [integration status](docs/INTEGRATION_STATUS.md) and [database setup](docs/DATABASE_SETUP.md) for the teacher/two-admin workflow, ten applied migrations, tests and SMTP gates. The existing site is https://rabeya-wahed-biddaniketan.vercel.app; source remains in the exact owner repository. Older milestone notes below are historical where superseded.
+
 Updated: 22 November 2026 (Asia/Dhaka).
 
 ## Current milestone

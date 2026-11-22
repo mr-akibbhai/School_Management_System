@@ -1,0 +1,111 @@
+{
+  "date": "2026-11-22",
+  "project_ref": "nfoohhydncflcbegrxbz",
+  "scope": "Live anonymous reads, rejected operations and SMTP gate; rate counter only; no school records or Auth accounts created",
+  "checks": [
+    {
+      "name": "anonymous teacher_accounts denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous teacher_assignments denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous admin_invitations denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous secondary_admins denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous enrollments denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous subject_marks denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous mark_submissions denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous mark_history denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous result_sheets denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous student_details denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous teacher_attendance denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous class_attendance denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous RPC school_role denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous RPC class_roster denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous RPC accept_admin_invitation denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous RPC reserve_admin_invitation denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous RPC save_marks denied",
+      "status": "passed"
+    },
+    {
+      "name": "anonymous RPC calculate_exam_results denied",
+      "status": "passed"
+    },
+    {
+      "name": "public academic catalog accessible and restricted to non-personal fields",
+      "status": "passed"
+    },
+    {
+      "name": "function preflight http://127.0.0.1:5173",
+      "status": "passed"
+    },
+    {
+      "name": "function preflight https://rabeya-wahed-biddaniketan.vercel.app",
+      "status": "passed"
+    },
+    {
+      "name": "public cannot invite secondary Admin",
+      "status": "passed"
+    },
+    {
+      "name": "teacher registration honeypot rejected",
+      "status": "passed"
+    },
+    {
+      "name": "teacher email remains gated without creating account",
+      "status": "passed"
+    },
+    {
+      "name": "private teacher-private inaccessible anonymously",
+      "status": "passed"
+    },
+    {
+      "name": "private student-photos inaccessible anonymously",
+      "status": "passed"
+    }
+  ]
+}

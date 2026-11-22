@@ -1,76 +1,71 @@
 # School integration status
 
-Verified 22 November 2026 (Asia/Dhaka). This supersedes earlier pending-state notes. Production acceptance remains incomplete.
+Updated 22 November 2026 (Asia/Dhaka). School project only: School_Management_System, reference nfoohhydncflcbegrxbz. The old SMSA project was not accessed.
 
-## Verified project and completed work
+## Current verified state
 
-Project: **School_Management_System**, reference **nfoohhydncflcbegrxbz**, URL `https://nfoohhydncflcbegrxbz.supabase.co`. The project-scoped MCP uses OAuth. The old SMSA project was not accessed.
+The original website and CMS remain. The upgrade adds one protected Super Admin plus at most one invited secondary Admin, approved teacher accounts, class/subject permissions and a normalized examination workflow. Students and guardians have no accounts.
 
-- Original migrations were not rerun. Local filenames now match remote history; original SQL hashes match the historical setup evidence.
-- One additive hardening migration added covering indexes for `attendance.class_id` and `exams.class_id`, and revoked browser execution of `rls_auto_enable()`. The automatic RLS event trigger remains enabled. Changes were explained before application; no records were deleted or RLS disabled.
-- All 16 public tables retain RLS. There are 30 public indexes plus the private rate-limit index, seven foreign keys, 17 application triggers and 25 application/Storage policies as audited. The six existing buckets are preserved; admission-documents remains private.
-- Both Edge Functions, **public-api** and **upload**, are **ACTIVE, version 6** at final verification. Public-api accepts only narrow public actions. Upload independently validates the bearer session with Auth and checks `is_admin()` before processing files. Gateway JWT verification is intentionally off for these handlers; application authorization remains enforced.
-- Ignored `.env.local` points to the exact school project using its modern publishable key. No service-role key or database password was copied locally or committed.
-- Hosted Auth: signup and anonymous sign-in disabled; email/password and confirmation enabled; minimum password length configured as 12; secure email/password change enabled. Site URL is `http://127.0.0.1:5173`; exact reset callbacks for that origin and `http://localhost:5173` are allowlisted.
-- Session persistence/refresh, invite/recovery routing, admin-membership checks, logout errors and server-error display were strengthened. Database reads page in batches of 500. The production bundle splits vendor code.
+- 37 public tables, all RLS-enabled; the original 16 tables/data are preserved.
+- Ten tracked migrations, with local filenames matching remote versions. No reset, table removal, truncation or existing-record deletion occurred. The owner explicitly approved making student birth_date nullable; past-date validation remains.
+- Original six buckets retained. Two new private image buckets: teacher-private and student-photos. Eight total, three private. Private file viewing uses expiring signed URLs.
+- Edge Functions active: public-api v7, upload v7, school-accounts v1 at verification. Gateway JWT checks are off because public actions are anonymous and protected actions validate Auth/session/roles inside the handlers.
+- Hosted public signup remains disabled. Teacher self-registration uses the guarded server endpoint and an email invitation to verify the mailbox/choose a password; it creates a pending teacher record only after the Auth invitation succeeds. No student/admin public signup exists.
+- Production Site URL is https://rabeya-wahed-biddaniketan.vercel.app. Its exact /admin/reset-password callback was added; the two local callbacks remain. The Edge origin allowlist now includes this exact production origin plus the two local port-5173 origins. No Vercel project/settings were replaced.
+- Cloudflare remains optional/deferred. Validation, bounded requests, server rate limiting, honeypot/timing checks, Auth and RLS remain enforced.
 
-## Applied migration history
+## Account and email gates
 
-| Version | Name |
-| --- | --- |
-| 20261121214713 | school |
-| 20261121214718 | storage |
-| 20261121214730 | home_layout |
-| 20261121220521 | covering_indexes_and_event_helper_permissions |
+The live project still has zero Auth users, zero owner memberships, zero teachers, zero secondary Admins and zero students. No synthetic school record or second administrator was created in production. The owner's earlier request to keep the initial invitation pending for Resend remains respected.
 
-Do not replay these migrations. `scripts/check-migration-history.mjs` takes current non-secret MCP migration metadata on stdin and checks names, versions and original hashes without executing SQL. Original evidence intentionally retains original filenames as a historical record.
+Resend has no verified sending domain. The school-accounts email gate, SCHOOL_EMAIL_ENABLED, defaults to false and is not enabled. Invitations and registration email therefore return an explicit SMTP-pending message before creating an Auth user. No credentials or sender address were invented. Supabase's default SMTP serves only project-team addresses and currently allows two messages/hour; it cannot support ordinary external teachers/Admin invitees in production. [Official SMTP limits](https://supabase.com/docs/guides/auth/auth-smtp).
 
-## Public forms and uploads
+After an owner-provided verified domain/sender and secure SMTP configuration, enable SCHOOL_EMAIL_ENABLED=true, complete the pending primary-owner invitation, and run real-mailbox acceptance. This is an infrastructure action, not an instruction for the owner to write SQL or code.
 
-The owner deferred Cloudflare. Server `CAPTCHA_MODE=disabled`; frontend site key is blank and Auth CAPTCHA flag is false. No Cloudflare account is required now.
+## Access and marks workflow
 
-All public operations still require server-validated fields, a bounded JSON body, an empty honeypot and a form timestamp between 1.5 seconds and two hours old. Valid operations share a database-enforced limit of 20 requests per salted IP hash per hour. Raw IPs are not stored in that counter. Missing configuration fails closed. Honeypot/timing values can be reproduced by bots, so they reduce spam without proving a human is present. CORS constrains browser origins; it is not authentication. The gateway must supply a trustworthy forwarded IP.
+The original admins singleton table remains the protected owner record. Secondary Admin invitations and memberships use separate one-slot constraints. Only is_super_admin callers can reserve/send/revoke invitations; acceptance requires the exact invited Auth user, matching confirmed email and an unexpired invitation. Revocation changes membership immediately; organization owners retain platform-level control. No second Admin is created automatically.
 
-Configured server names: `ALLOWED_ORIGINS`, `RATE_LIMIT_SALT`, `CAPTCHA_MODE`, and optional future `TURNSTILE_HOSTNAMES`. Origins currently allow only the two local port-5173 origins. Supabase supplies server-only runtime credentials. No Turnstile secret was invented or configured.
+Teachers have pending/approved/rejected/suspended statuses. Admin approval and class-subject assignment are required. Teachers cannot edit status/role/assignments. A minimal roster RPC returns enrollment ID, student code, roll and name only, never student DOB, guardian, address or phone. Own teacher profiles/photos are private; approved teachers see their own submissions/history and assigned classes.
 
-Upload enforces authentication/admin membership, bucket allowlists, request/file size limits, signature/MIME matching and generated paths. Private uploads return paths without public URLs; viewing uses signed URLs. File signature checks are not malware scanning.
+Exam configuration includes class/year, type, deadline, entry switch, subject full/pass marks and named assessment components. One examination row represents one class; use the same name/type across applicable classes. Components must total the full mark. Academic identities/configuration lock where changes would repoint historical marks.
 
-To enable Turnstile later, configure a real server secret/hostnames and frontend site key, then set server `CAPTCHA_MODE=required`. Missing mode defaults to required. Auth CAPTCHA is separate: enable it on Supabase and set `VITE_AUTH_CAPTCHA_ENABLED=true` together. The owner has deferred both.
+Marks are saved transactionally through save_marks, with assignment, approval, class, component, numeric bound, duplicate, deadline and submission-state checks. Drafts can contain completed student rows; a final submission must cover the full eligible roster. Submitted marks lock until an Admin reopens them. Admins can correct open drafts through the same validation. The Admin reviews submissions, calculates snapshots, then explicitly publishes. Publication rejects unreviewed or stale calculations. Exam-scoped locks serialize marks/review/publication. Direct legacy result writes are revoked; legacy records remain readable.
 
-## Security audit
+The school defines grade thresholds and optional GPA points; no school scale is seeded. Calculation produces subject marks, total, percentage, grade, subject pass/fail, optional mean subject GPA and dense merit rank (passes before failures; ties share rank). Grade/GPA thresholds and pass marks are independent and must match school policy. Changing marks/grading requires recalculation before publication. Public lookup requires both student code and a private random access code and returns only published academic data. Internal provenance and student/guardian PII are omitted.
 
-Missing covering indexes and event-helper execution warnings were resolved. Two Security Advisor warnings remain for intentional `is_admin()` SECURITY DEFINER execution by anon/authenticated roles. This helper returns only the caller's boolean membership and is needed by RLS/admin routing; it cannot assign roles. The live anonymous check returns false. References: [anonymous helper advisory](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable), [authenticated helper advisory](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
+Admin features include student details/photos, current enrollment, roll/year/section, promotion with historical enrollments, transfer/withdrawal records, teacher/class attendance, class reports, routines/homework, public class-subject catalog and the existing calendar/notices/CMS/media moderation. Print actions support tabulation/marksheets and the browser's Save as PDF; no external paid PDF service is used.
 
-Overlapping published-read/admin policies and unused indexes on empty tables were reviewed without weakening access rules. Ordinary authenticated clients cannot delete the sole membership, change its UUID/role or promote another account. Supabase organization owners retain platform-level control.
+## Security findings and limitations
 
-## Validation and limits
+All new tables use explicit grants and RLS. Privileged SECURITY DEFINER functions have fixed empty search paths and perform role/assignment checks. Security Advisor reports two warning groups: 2 anonymous and 19 authenticated SECURITY DEFINER execution findings for callable catalog/authorization helpers and guarded RPCs. Performance Advisor reports 6 initplan warnings, 28 overlapping-policy warnings and 19 unused-index informational findings on the empty database. There are no missing-FK-index findings. These performance items remain tracked for profiling rather than weakening RLS. These warnings are documented, not represented as a clean audit. [Anonymous function advisory](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable), [authenticated function advisory](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
 
-| Check | Observed result |
-| --- | --- |
-| Frontend validation tests | 4 passed |
-| Isolated PostgreSQL/PGlite checks | 54 passed |
-| Isolated Deno Edge handler tests | 17 passed |
-| Both Edge entrypoint typechecks | Passed |
-| TypeScript/Vite production build | Passed |
-| Local/remote migration versions and original hashes | 4 matched |
-| Live public API/Auth/Storage smoke checks | 21 passed; see live-readonly-smoke.json |
-| Owner login, recovery and positive live admin CRUD/uploads | Pending invitation |
-| Latest connected visual/mobile recheck | Incomplete: in-app browser localhost connection reset; native HTTP returned 200 |
+Account status/invitation/acceptance/revocation changes produce semantic audit events without storing emails or payloads in the log. Marks revisions retain protected history. Uploads validate session/role, bucket, signatures/MIME and size. These checks are not malware scanning. Honeypot/timestamps are spam deterrents, not proof of a human. The rate counter depends on a trustworthy gateway forwarded-IP header. Private tables/keys are never exposed to the frontend.
 
-Live checks cover public settings, anonymous private-table/RPC restrictions, disabled signup, private bucket listing, trusted/untrusted origins, invalid metadata, honeypot rejection, tracking without CAPTCHA and anonymous/forged-token upload denial. Tracking increments only a transient rate counter. No fake student, admission, message, upload or Auth account was created in production. Positive CRUD, upload, integrity and rate-exhaustion scenarios use local synthetic fixtures; these are not live owner acceptance. Earlier setup-mode visual checks/screenshots remain historical.
+Core public pages preserve Bengali/English navigation. New workflow labels are bilingual or English; full editorial translation and real-device/authenticated accessibility review remain acceptance work. Pre-primary admissions are not enabled without confirmation that the school offers them. Class teaching remains 1–5.
 
-## Explicitly pending at the owner's request
+## Tests actually executed
 
-- **Resend SMTP:** signed in, but no verified sending domain exists. No domain or paid service was purchased. Wait for an owner-provided domain and exact sender, then arrange secure credential entry.
-- **Sole Super Admin invitation and membership:** not created. The owner explicitly chose to wait for Resend. Final read-only counts show zero Auth users and zero admins. The pending recipient remains in private task context, not public source. Do not use built-in email as a fallback.
-- Invitation acceptance, user-selected password, login/logout/recovery and live admin acceptance require that account. Password entry belongs to the owner.
-- Student self-registration, a separate student dashboard/profile/attendance login and a standalone subjects catalog are unsupported by the existing schema. Admin-managed student/attendance/subject-marks data and public private-code result lookup exist. Requirements are needed before adding a new role model/schema.
-- School branding/contact details, translations, media consent and grading/admission policy require owner review.
+| Check                                                     | Result                                                                                           |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Original isolated database suite                          | 54 checks passed                                                                                 |
+| Full migration/role/marks/invitation upgrade suite        | 83 checks passed                                                                                 |
+| Public API and upload Deno suite                          | 19 tests passed                                                                                  |
+| School-account handler Deno suite                         | 12 tests passed                                                                                  |
+| Frontend schema suite                                     | 4 tests passed                                                                                   |
+| All three Edge entrypoint typechecks                      | Passed                                                                                           |
+| TypeScript/Vite production build                          | Passed                                                                                           |
+| New live anonymous/API/privacy/email-gate smoke suite     | 26 checks passed; live-upgrade-smoke.json                                                        |
+| Historical live suite                                     | 21 checks passed; live-readonly-smoke.json                                                       |
+| Connected local browser                                   | Teacher registration desktop/mobile 390×844; no horizontal overflow; protected route shows login |
+| Real invitation/password/approved-user browser acceptance | Pending SMTP and initial owner invitation; not claimed passed                                    |
 
-## Hosting, backups and next actions
+Positive synthetic accounts/marks/student fixtures exist only in isolated PGlite/fake handler tests. Live checks use reads/rejected requests and transient rate counters; no fake student/teacher account was created. Snapshot counts and migration evidence are in DATABASE_SETUP.md and upgrade-evidence.json.
 
-**No Vercel deployment occurred.** Build and existing Vercel configuration prepare the source. Production origin, Site URL, exact Auth redirects, function origins, environment values and acceptance checks await an approved hosting URL and explicit deployment approval.
+## Release and ownership
 
-The dashboard shows Supabase Free excludes automatic project backups and PITR is a paid add-on. Neither was purchased/enabled. No export or restoration was performed. Keep encrypted independent database/Auth recovery material and separately back up Storage object bytes; rehearse restoration only in an isolated authorized project. See OWNERSHIP_AND_BACKUPS.md.
+The existing GitHub main branch is connected to the existing Vercel project, verified by its Vercel commit status. Tested source is pushed to that same repository; final commit/deployment evidence is reported with the task completion. No second repository, Vercel project, domain or paid service was created.
 
-Next owner-dependent step: a verified Resend domain/sender, secure SMTP setup, the one owner invitation, user-selected password and connected admin acceptance. Real-device/accessibility checks, backup restoration rehearsal and production configuration remain release gates. No manual SQL or coding is requested from the owner.
+Backups/PITR were not upgraded or tested. Supabase Free automatic project backups are unavailable; independent encrypted database/Auth recovery planning and separate Storage-byte copies remain necessary. No recovery claim is made.
+
+Remaining owner-dependent steps: verified Resend domain/sender and secure credentials, the pending initial Super Admin invitation/password, real teacher/secondary-admin mailbox acceptance, authenticated workflow and print/PDF review, final verified school content, and an isolated backup restoration rehearsal. Detailed operating steps are in ADMIN_MANUAL_BN.md. Do not add organization members to bypass email restrictions.

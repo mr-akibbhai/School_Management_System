@@ -1,6 +1,8 @@
 # Owner setup and deployment
 
-Current school state is recorded in [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md): all four migrations are already tracked/applied, functions are active and local frontend/Auth configuration is connected. Do not replay migrations on nfoohhydncflcbegrxbz. SMTP and invitation are explicitly deferred. The steps below describe future/fresh-checkout setup; use an isolated staging project for acceptance. You can do all routine content work in the dashboard once setup and acceptance testing are complete.
+**Current upgrade (22 November 2026):** See [integration status](INTEGRATION_STATUS.md) and [database setup](DATABASE_SETUP.md) for the teacher/two-admin workflow, ten applied migrations, tests and SMTP gates. The existing site is https://rabeya-wahed-biddaniketan.vercel.app; source remains in the exact owner repository. Older milestone notes below are historical where superseded.
+
+Current school state is recorded in [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md): all ten migrations are already tracked/applied, functions are active and local frontend/Auth configuration is connected. Do not replay migrations on nfoohhydncflcbegrxbz. SMTP and invitation are explicitly deferred. The steps below describe future/fresh-checkout setup; use an isolated staging project for acceptance. You can do all routine content work in the dashboard once setup and acceptance testing are complete.
 
 ## 1. Your accounts
 
@@ -25,7 +27,7 @@ For a new checkout, copy `.env.example` to ignored `.env` locally; the existing 
 | `VITE_SUPABASE_URL`             | Your project HTTPS URL                        | No                         |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key (or legacy anon key) | No; security relies on RLS |
 | `VITE_TURNSTILE_SITE_KEY`       | Optional site key; blank currently            | No                         |
-| `VITE_AUTH_CAPTCHA_ENABLED`      | false currently; match hosted Auth setting   | No                         |
+| `VITE_AUTH_CAPTCHA_ENABLED`     | false currently; match hosted Auth setting    | No                         |
 | `VITE_SITE_URL`                 | Exact final frontend origin                   | No                         |
 
 `VITE_SITE_URL` generates sitemap/robots URLs at build time; do not put a path or localhost here for a production build. Initial placeholders must be replaced before release. Schools with different branding can change logo, hero image, names and text in the dashboard.
@@ -43,13 +45,13 @@ The public API intentionally accepts anonymous requests. The upload function val
 
 Configure these **server-side Supabase Edge Function secrets**, through your project's secret manager or a secure local CLI workflow:
 
-| Secret                 | Purpose                                                         |
-| ---------------------- | --------------------------------------------------------------- |
-| `TURNSTILE_SECRET_KEY` | Optional: required only with CAPTCHA_MODE=required; verification of tokens                           |
-| `TURNSTILE_HOSTNAMES`  | Comma-separated exact allowed hostnames, without scheme/port    |
-| `ALLOWED_ORIGINS`      | Comma-separated exact origins with scheme and port where needed |
-| `RATE_LIMIT_SALT`      | Random strong secret for request-key hashing                    |
-| `CAPTCHA_MODE`          | disabled currently; required for later Turnstile enforcement     |
+| Secret                 | Purpose                                                                    |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `TURNSTILE_SECRET_KEY` | Optional: required only with CAPTCHA_MODE=required; verification of tokens |
+| `TURNSTILE_HOSTNAMES`  | Comma-separated exact allowed hostnames, without scheme/port               |
+| `ALLOWED_ORIGINS`      | Comma-separated exact origins with scheme and port where needed            |
+| `RATE_LIMIT_SALT`      | Random strong secret for request-key hashing                               |
+| `CAPTCHA_MODE`         | disabled currently; required for later Turnstile enforcement               |
 
 Supabase provides `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_ANON_KEY` inside Edge Functions. These server secrets never belong in the frontend. On a self-hosted runtime supply them securely. For production use your real Turnstile keys and hostname restrictions; Cloudflare's documented test keys are only for staging tests. CAPTCHA is optional: the owner selected server CAPTCHA_MODE=disabled, with blank frontend site key and VITE_AUTH_CAPTCHA_ENABLED=false. Validation, rate limits and honeypot/timing checks remain mandatory. For later enablement, configure real server secret/hostnames and frontend site key, then set CAPTCHA_MODE=required. Auth CAPTCHA must separately match the hosted setting and VITE_AUTH_CAPTCHA_ENABLED flag. Missing CAPTCHA_MODE defaults to required.
 
@@ -99,3 +101,13 @@ Checked against official documentation on 22 November 2026; check again before a
 - Domain registration renewals, production SMTP, database backups and storage/traffic overages may cost extra. Account owners choose and approve any paid service.
 
 Official references: [Vite on Vercel](https://vercel.com/docs/frameworks/frontend/vite), [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [password recovery](https://supabase.com/docs/guides/auth/passwords).
+
+## Teacher/two-admin upgrade activation
+
+Public Auth signup stays disabled. The school-accounts Edge Function is the only registration/invitation entry point. Supply a verified owner domain/sender and configure SMTP securely before enabling the server-only SCHOOL_EMAIL_ENABLED=true gate. Keep it off while Resend is pending. No frontend variable can enable it. Never put a server key/password in VITE_ variables.
+
+Primary owner setup remains deferred by the owner. After secure setup, use /admin/academic-workspace. Super Admin alone sees Admin access; the invitation is sent by school-accounts, reserved atomically, and accepted by the matching verified Auth user. Only that acceptance creates the secondary membership. Revocation is a soft state change and frees the slot; owner membership cannot be altered there. Do not manually grant teacher/admin roles via Auth metadata.
+
+Teacher registration is /teacher-register. Registrants verify the email invitation and choose a password, complete their private photograph/profile, then wait for Admin approval and explicit class-subject assignments. Approve/reject/suspend/reactivate in Academics & teachers. The approved teacher uses /teacher (or the shared login) for assigned exams and attendance. Students/guardians have no signup route.
+
+Production Site URL and exact callback/origin are configured for the existing Vercel URL, preserving local callbacks. A different future hostname requires corresponding exact origins/callbacks and a reviewed frontend environment update. Optional Turnstile remains off.

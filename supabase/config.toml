@@ -13,3 +13,6 @@ minimum_password_length = 12
 verify_jwt = false
 [functions.upload]
 verify_jwt = false
+
+[functions.school-accounts]
+verify_jwt = false

@@ -1,4 +1,10 @@
 import {
+  TeacherRegistration,
+  TeacherWorkspace,
+  SchoolManagement,
+  AccountStatus,
+} from "./SchoolWorkspace";
+import {
   Children,
   createContext,
   useCallback,
@@ -275,6 +281,11 @@ export default function App() {
       <ErrorBoundary>
         <Routes>
           <Route path="/admin/*" element={<AdminShell setLang={setLang} />} />
+          <Route path="/teacher/*" element={<AdminShell setLang={setLang} />} />
+          <Route
+            path="/teacher-register"
+            element={<TeacherRegistration Captcha={Captcha} />}
+          />
           <Route path="/*" element={<PublicShell setLang={setLang} />} />
         </Routes>
       </ErrorBoundary>
@@ -984,6 +995,12 @@ function PeoplePage({ administration = false }: { administration?: boolean }) {
 function Academics() {
   const { data, t } = useSchool();
   const [level, setLevel] = useState("");
+  const [catalog, setCatalog] = useState<any[]>([]);
+  useEffect(() => {
+    void db?.rpc("public_academic_catalog").then((r) => {
+      if (!r.error) setCatalog(r.data || []);
+    });
+  }, []);
   return (
     <>
       <PageHead
@@ -1007,6 +1024,22 @@ function Academics() {
             </select>
           </label>
         </div>
+        {catalog.length > 0 && (
+          <div className="card">
+            <h2>{t("শ্রেণি ও বিষয়", "Classes & subjects")}</h2>
+            <ul>
+              {catalog
+                .filter((r) => !level || r.level === Number(level))
+                .map((r, i) => (
+                  <li key={i}>
+                    {r.class_name_bn} {r.section} · {r.academic_year} ·{" "}
+                    {r.subject_name_bn}
+                    {r.subject_name_en ? " / " + r.subject_name_en : ""}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
         <DocumentList
           items={data.academic_documents.filter(
             (r) =>
@@ -1744,7 +1777,9 @@ function Results() {
                 <tbody>
                   {result.marks.map((r: any, i: number) => (
                     <tr key={i}>
-                      <td>{r.subject}</td>
+                      <td>
+                        {lang === "en" ? r.subject_en || r.subject : r.subject}
+                      </td>
                       <td>{r.score}</td>
                       <td>{r.maximum}</td>
                     </tr>
@@ -1771,6 +1806,24 @@ function Results() {
               <p>
                 {t("গ্রেড", "Grade")}: {result.grade || "—"}
               </p>
+              {typeof result.percentage === "number" && (
+                <p>
+                  {t("শতকরা", "Percentage")}: {result.percentage}%
+                </p>
+              )}
+              {typeof result.gpa === "number" && <p>GPA: {result.gpa}</p>}
+              {typeof result.passed === "boolean" && (
+                <p>
+                  {result.passed
+                    ? t("উত্তীর্ণ", "Passed")
+                    : t("অনুত্তীর্ণ", "Not passed")}
+                </p>
+              )}
+              {typeof result.merit_position === "number" && (
+                <p>
+                  {t("মেধাক্রম", "Merit position")}: {result.merit_position}
+                </p>
+              )}
               <p>
                 {t("প্রকাশের তারিখ", "Published")}:{" "}
                 {localeDate(result.published_at, lang)}
@@ -1780,7 +1833,7 @@ function Results() {
                 onClick={() => window.print()}
               >
                 <Printer size={18} />
-                {t("প্রিন্ট করুন", "Print")}
+                {t("প্রিন্ট / পিডিএফ সংরক্ষণ", "Print / Save PDF")}
               </button>
             </article>
           ) : (
@@ -2031,7 +2084,12 @@ function Footer() {
             "Committed to student privacy",
           )}
         </span>
-        <Link to="/admin/login">{t("অ্যাডমিন লগইন", "Admin login")}</Link>
+        <Link to="/admin/login">
+          {t("শিক্ষক / অ্যাডমিন লগইন", "Teacher / Admin login")}
+        </Link>
+        <Link to="/teacher-register">
+          {t("শিক্ষক নিবন্ধন", "Teacher registration")}
+        </Link>
       </div>
     </footer>
   );
@@ -2073,6 +2131,8 @@ function statusLabel(status: string, lang: Lang) {
 }
 
 function AdminShell({ setLang }: { setLang: (v: Lang) => void }) {
+  const [accountRole, setAccountRole] = useState("none"),
+    [roleRefresh, setRoleRefresh] = useState(0);
   const { t } = useSchool();
   const [session, setSession] = useState<Session | null>(null),
     [checking, setChecking] = useState(!!db),
@@ -2095,13 +2155,16 @@ function AdminShell({ setLang }: { setLang: (v: Lang) => void }) {
       }
       setSession(s);
       if (s) {
-        const result = await Promise.resolve(db!.rpc("is_admin")).catch(() => ({
-          data: false,
-          error: true,
-        }));
+        const result = await Promise.resolve(db!.rpc("school_role")).catch(
+          () => ({
+            data: "none",
+            error: true,
+          }),
+        );
         if (live && sequence === verificationSequence.current) {
           verifiedUser.current = s.user.id;
-          setAuthorized(result.data === true);
+          setAccountRole(String(result.data || "none"));
+          setAuthorized(["super_admin", "admin"].includes(String(result.data)));
           setAuthError(
             result.error
               ? "Unable to verify access. Please sign in again."
@@ -2134,7 +2197,7 @@ function AdminShell({ setLang }: { setLang: (v: Lang) => void }) {
       live = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [roleRefresh]);
   useEffect(() => {
     document.title = t("অ্যাডমিন · বিদ্যালয়", "Admin · School portal");
     document.querySelector('meta[name="robots"]')?.remove();
@@ -2148,6 +2211,14 @@ function AdminShell({ setLang }: { setLang: (v: Lang) => void }) {
     reset = location.pathname === "/admin/reset-password";
   if (checking) return <Spinner />;
   if (reset) return <AuthCard mode="reset" session={session} />;
+  if (session && accountRole === "teacher") return <TeacherWorkspace />;
+  if (session && !authorized)
+    return (
+      <AccountStatus
+        role={accountRole}
+        onRefresh={() => setRoleRefresh((n) => n + 1)}
+      />
+    );
   if (!session || !authorized)
     return (
       <>
@@ -2182,13 +2253,19 @@ function AdminShell({ setLang }: { setLang: (v: Lang) => void }) {
           <IconBook />
           <span>
             <strong>{t("বিদ্যালয় ব্যবস্থাপনা", "School workspace")}</strong>
-            <small>SUPER ADMIN</small>
+            <small>
+              {accountRole === "super_admin" ? "SUPER ADMIN" : "ADMIN"}
+            </small>
           </span>
         </Link>
         <nav>
           <NavLink end to="/admin">
             <LayoutDashboard size={18} />
             {t("সারসংক্ষেপ", "Overview")}
+          </NavLink>
+          <NavLink to="/admin/academic-workspace">
+            <BookOpen size={17} />
+            {t("একাডেমিক ও শিক্ষক ব্যবস্থাপনা", "Academics & teachers")}
           </NavLink>
           {Object.entries(modules).map(([k, m]) => (
             <NavLink to={`/admin/${k}`} key={k}>
@@ -2240,6 +2317,7 @@ function AdminShell({ setLang }: { setLang: (v: Lang) => void }) {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/profile" element={<Profile session={session} />} />
+            <Route path="/academic-workspace" element={<SchoolManagement />} />
             <Route path="/media" element={<MediaLibrary />} />
             <Route path="/:module" element={<Manager />} />
             <Route path="*" element={<NotFound />} />
@@ -2346,14 +2424,14 @@ function AuthCard({
           <LockKeyhole />
         </span>
         <p className="eyebrow">
-          {t("শুধু অনুমোদিত অ্যাডমিনের জন্য", "AUTHORIZED ADMINISTRATOR ONLY")}
+          {t("অনুমোদিত শিক্ষক ও অ্যাডমিনের জন্য", "AUTHORIZED ADMINISTRATOR ONLY")}
         </p>
         <h1>
           {mode === "reset"
             ? t("নতুন পাসওয়ার্ড", "Set a new password")
             : forgot
               ? t("অ্যাক্সেস পুনরুদ্ধার", "Recover access")
-              : t("স্বাগতম, অ্যাডমিন", "Welcome back")}
+              : t("স্কুল কর্মক্ষেত্রে স্বাগতম", "Welcome back")}
         </h1>
         <p>
           {t(
@@ -2715,7 +2793,11 @@ function Manager() {
           .map((f) => [
             f,
             edit[f] === "" &&
-            ["class_level", ...Object.keys(relationTables)].includes(f)
+            [
+              "class_level",
+              ...(config.table === "students" ? ["birth_date"] : []),
+              ...Object.keys(relationTables),
+            ].includes(f)
               ? null
               : edit[f],
           ]),
@@ -3348,23 +3430,24 @@ function AdminField({
       .toISOString()
       .slice(0, 16);
   }
-  const required = [
-    "title_bn",
-    "name_bn",
-    "school_name_bn",
-    "student_name",
-    "guardian_name",
-    "phone",
-    "birth_date",
-    "academic_year",
-    "level",
-    "roll",
-    "student_code",
-    "event_date",
-    "exam_date",
-    "attendance_date",
-    "publish_at",
-  ].includes(field);
+  const required =
+    [
+      "title_bn",
+      "name_bn",
+      "school_name_bn",
+      "student_name",
+      "guardian_name",
+      "phone",
+      "birth_date",
+      "academic_year",
+      "level",
+      "roll",
+      "student_code",
+      "event_date",
+      "exam_date",
+      "attendance_date",
+      "publish_at",
+    ].includes(field) && !(field === "birth_date" && moduleKey === "students");
   return (
     <label className={`field ${multiline ? "full-span" : ""}`}>
       <span>

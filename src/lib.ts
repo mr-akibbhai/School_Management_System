@@ -330,6 +330,7 @@ export const modules: Record<
     fields: ["name_bn", "name_en", "academic_year", "class_id", "exam_date"],
   },
   results: {
+    readonly: true,
     bn: "ফলাফল",
     en: "Results",
     table: "results",

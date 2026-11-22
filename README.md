@@ -1,5 +1,7 @@
 # Primary School Website & Management System
 
+**Current upgrade (22 November 2026):** See [integration status](docs/INTEGRATION_STATUS.md) and [database setup](docs/DATABASE_SETUP.md) for the teacher/two-admin workflow, ten applied migrations, tests and SMTP gates. The existing site is https://rabeya-wahed-biddaniketan.vercel.app; source remains in the exact owner repository. Older milestone notes below are historical where superseded.
+
 React + TypeScript + Tailwind + Supabase. Bengali-first, English toggle. Complete local source for public pages and a protected administrator workspace. **Not live or production-certified yet.** The school backend is connected; owner invitation, email setup and production acceptance remain pending. See [current integration status](docs/INTEGRATION_STATUS.md).
 
 ## Run locally

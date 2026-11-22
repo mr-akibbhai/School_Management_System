@@ -1,24 +1,26 @@
 # Testing report and release acceptance
 
+**Current upgrade (22 November 2026):** See [integration status](INTEGRATION_STATUS.md) and [database setup](DATABASE_SETUP.md) for the teacher/two-admin workflow, ten applied migrations, tests and SMTP gates. The existing site is https://rabeya-wahed-biddaniketan.vercel.app; source remains in the exact owner repository. Older milestone notes below are historical where superseded.
+
 Updated 22 November 2026: 4 frontend tests, 54 isolated database checks, 17 isolated Edge tests, both Edge typechecks and production build passed. All 21 live smoke checks passed. See INTEGRATION_STATUS.md and live-readonly-smoke.json. Owner Auth/admin acceptance remains pending. Visual checks below are historical setup-mode checks; the latest connected visual/mobile recheck encountered a browser localhost connection reset despite native HTTP 200.
 
 ## Observed passes
 
-| Check                                        | Result                                                                       | Scope                                                                                                                                          |
-| -------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| TypeScript + Vite production build           | Passed                                                                       | Frontend bundle, not backend deployment                                                                                                        |
-| Public submission/schema tests               | 4 test cases passed                                                          | Admission coercion/consent/date/phone/class validation, contact validation, unsafe URL rejection                                               |
-| PostgreSQL migration/security checks         | 54 checks passed | PGlite runs actual PostgreSQL SQL/policies with a test Auth identity function and a minimal Storage schema, not the complete Supabase platform |
-| Supabase Edge Function typecheck             | Passed for both functions using Deno                                         | Compilation/import/types, not remote runtime behavior                                                                                          |
-| npm dependency audit                         | Zero findings after updates                                                  | Registry audit at execution time, not a security certification                                                                                 |
-| Public page browser smoke checks             | Passed                                                                       | Home, About, Administration, Teachers, Academics, Admission, Notices, Results, Gallery, News, Downloads, Contact                               |
-| Unknown route                                | Passed                                                                       | Custom 404 content renders                                                                                                                     |
-| Direct protected route without service setup | Passed                                                                       | `/admin/students` renders login/setup; no admin data exposed                                                                                   |
-| Language preference                          | Passed                                                                       | Bangla → English, persisted after navigation; switched back to Bangla                                                                          |
-| Desktop preview                              | Passed                                                                       | Home observed at 1155 px viewport; no document horizontal overflow                                                                             |
-| Mobile preview                               | Passed                                                                       | 390 × 844 viewport; menu opens, English and Bangla render, no document horizontal overflow                                                     |
-| Missing service configuration                | Passed                                                                       | Clear setup banner and empty states; contact submission disabled                                                                               |
-| Browser console                              | No errors observed                                                           | During the route/language/mobile checks above                                                                                                  |
+| Check                                        | Result                               | Scope                                                                                                                                          |
+| -------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| TypeScript + Vite production build           | Passed                               | Frontend bundle, not backend deployment                                                                                                        |
+| Public submission/schema tests               | 4 test cases passed                  | Admission coercion/consent/date/phone/class validation, contact validation, unsafe URL rejection                                               |
+| PostgreSQL migration/security checks         | 54 checks passed                     | PGlite runs actual PostgreSQL SQL/policies with a test Auth identity function and a minimal Storage schema, not the complete Supabase platform |
+| Supabase Edge Function typecheck             | Passed for both functions using Deno | Compilation/import/types, not remote runtime behavior                                                                                          |
+| npm dependency audit                         | Zero findings after updates          | Registry audit at execution time, not a security certification                                                                                 |
+| Public page browser smoke checks             | Passed                               | Home, About, Administration, Teachers, Academics, Admission, Notices, Results, Gallery, News, Downloads, Contact                               |
+| Unknown route                                | Passed                               | Custom 404 content renders                                                                                                                     |
+| Direct protected route without service setup | Passed                               | `/admin/students` renders login/setup; no admin data exposed                                                                                   |
+| Language preference                          | Passed                               | Bangla → English, persisted after navigation; switched back to Bangla                                                                          |
+| Desktop preview                              | Passed                               | Home observed at 1155 px viewport; no document horizontal overflow                                                                             |
+| Mobile preview                               | Passed                               | 390 × 844 viewport; menu opens, English and Bangla render, no document horizontal overflow                                                     |
+| Missing service configuration                | Passed                               | Clear setup banner and empty states; contact submission disabled                                                                               |
+| Browser console                              | No errors observed                   | During the route/language/mobile checks above                                                                                                  |
 
 The PostgreSQL checks cover anonymous private-table/RPC denial, non-admin write/self-promotion denial, one-admin enforcement, authorized class/student/exam/result writes, marks validation, immutable logs, restricted profile columns, scheduled notice/result visibility, exact private result lookup without student PII, tracking status without applicant PII, admission-open enforcement and rate-limit exhaustion. Storage policy tests use a minimal table scaffold and do not exercise the actual file-serving API.
 
@@ -58,3 +60,9 @@ The original checklist follows. Database setup/history and documented live negat
 15. Back up database/Auth strategy and all Storage objects. Restore into an isolated project and compare record/object counts, login, file access and result visibility.
 
 A production-ready declaration requires these connected checks, verified school content, account ownership and a confirmed live URL. None is implied by a successful local build.
+
+## Upgrade verification, 22 November 2026
+
+Current results: 83 full-migration upgrade checks, 54 original database checks, 19 public/upload Edge tests, 12 account-handler tests, 4 frontend validation tests, three Edge typechecks and production build passed. New live-upgrade-smoke.json records 26 live checks. Never substitute these for real owner/teacher/secondary-admin email/password acceptance, which is pending SMTP.
+
+Reproduce: npm run test:upgrade; npm run test:db; npm run test:edge; npm run test:accounts; npm test; npm run check:edge; npm run build. The database suites and handlers use isolated synthetic fixtures. Live smoke scripts use the ignored project environment and do not create Auth users or school records; successful lookup/gated registration can increment transient rate counters.

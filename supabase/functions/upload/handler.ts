@@ -5,6 +5,14 @@ import {
   type Environment,
 } from "../_shared/http.ts";
 export const rules: Record<string, { max: number; types: string[] }> = {
+  "student-photos": {
+    max: 5,
+    types: ["image/jpeg", "image/png", "image/webp"],
+  },
+  "teacher-private": {
+    max: 5,
+    types: ["image/jpeg", "image/png", "image/webp"],
+  },
   branding: { max: 5, types: ["image/jpeg", "image/png", "image/webp"] },
   teachers: { max: 5, types: ["image/jpeg", "image/png", "image/webp"] },
   gallery: {
@@ -78,8 +86,16 @@ export function createUploadHandler(deps: {
       const admin = await client.rpc("is_admin");
       if (admin.error)
         return reply({ error: "Unable to verify administrator" }, 503);
-      if (admin.data !== true)
-        return reply({ error: "Administrator required" }, 403);
+      let teacher = false;
+      if (admin.data !== true) {
+        const role = await client.rpc("school_role");
+        teacher =
+          !role.error &&
+          ["teacher", "pending", "rejected", "suspended"].includes(
+            String(role.data),
+          );
+        if (!teacher) return reply({ error: "Administrator required" }, 403);
+      }
       if (
         !req.headers
           .get("content-type")
@@ -97,6 +113,8 @@ export function createUploadHandler(deps: {
         file = form.get("file"),
         bucket = String(form.get("bucket")),
         rule = rules[bucket];
+      if (teacher && bucket !== "teacher-private")
+        return reply({ error: "Private teacher photograph only" }, 403);
       if (
         !(file instanceof File) ||
         !rule ||
@@ -123,10 +141,13 @@ export function createUploadHandler(deps: {
       if (upload.error) throw upload.error;
       return reply({
         path,
-        url:
-          bucket === "admission-documents"
-            ? null
-            : client.storage.from(bucket).getPublicUrl(path).data.publicUrl,
+        url: [
+          "admission-documents",
+          "teacher-private",
+          "student-photos",
+        ].includes(bucket)
+          ? null
+          : client.storage.from(bucket).getPublicUrl(path).data.publicUrl,
       });
     } catch (error) {
       if (error instanceof BodyTooLarge)
