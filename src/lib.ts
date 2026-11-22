@@ -1,18 +1,19 @@
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { authCallbackOptions } from "./auth-flow";
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 // Capture only the non-secret flow type before Supabase consumes callback tokens.
-export const incomingAuthLinkType =
-  typeof window === "undefined"
-    ? null
-    : new URLSearchParams(window.location.hash.slice(1)).get("type");
+const callback = authCallbackOptions(
+  typeof window === "undefined" ? "" : window.location.hash,
+);
+export const incomingAuthLinkType = callback.invitation ? "invite" : null;
 export const db =
   url && key
     ? createClient(url, key, {
         auth: {
           detectSessionInUrl: true,
-          flowType: "pkce",
+          flowType: callback.flowType,
           persistSession: true,
           autoRefreshToken: true,
         },
