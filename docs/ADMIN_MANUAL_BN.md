@@ -1,5 +1,7 @@
 # বিদ্যালয় অ্যাডমিনের সহজ ব্যবহার নির্দেশিকা
 
+Verified owner activation: the initial Super Admin account, email/password setup and authenticated dashboard are now confirmed. See [OWNER_ACTIVATION.md](OWNER_ACTIVATION.md). Earlier pending-owner notes below are historical; external school SMTP remains pending.
+
 ## ১. ওয়েবসাইটে কীভাবে প্রবেশ করবেন
 
 লাইভ সংযোগ ও প্রকাশ সম্পন্ন হলে আপনার নিজের ডোমেইন হবে ওয়েবসাইটের ঠিকানা। এখনো কোনো লাইভ ঠিকানা তৈরি করা হয়নি। অ্যাডমিন লগইনের ঠিকানা হবে:

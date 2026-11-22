@@ -1,5 +1,7 @@
 # Owner setup and deployment
 
+Verified owner activation: the initial Super Admin account, email/password setup and authenticated dashboard are now confirmed. See [OWNER_ACTIVATION.md](OWNER_ACTIVATION.md). Earlier pending-owner notes below are historical; external school SMTP remains pending.
+
 **Current upgrade (22 November 2026):** See [integration status](INTEGRATION_STATUS.md) and [database setup](DATABASE_SETUP.md) for the teacher/two-admin workflow, ten applied migrations, tests and SMTP gates. The existing site is https://rabeya-wahed-biddaniketan.vercel.app; source remains in the exact owner repository. Older milestone notes below are historical where superseded.
 
 Current school state is recorded in [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md): all ten migrations are already tracked/applied, functions are active and local frontend/Auth configuration is connected. Do not replay migrations on nfoohhydncflcbegrxbz. SMTP and invitation are explicitly deferred. The steps below describe future/fresh-checkout setup; use an isolated staging project for acceptance. You can do all routine content work in the dashboard once setup and acceptance testing are complete.

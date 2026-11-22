@@ -1,5 +1,7 @@
 # Testing report and release acceptance
 
+Verified owner activation: the initial Super Admin account, email/password setup and authenticated dashboard are now confirmed. See [OWNER_ACTIVATION.md](OWNER_ACTIVATION.md). Earlier pending-owner notes below are historical; external school SMTP remains pending.
+
 **Current upgrade (22 November 2026):** See [integration status](INTEGRATION_STATUS.md) and [database setup](DATABASE_SETUP.md) for the teacher/two-admin workflow, ten applied migrations, tests and SMTP gates. The existing site is https://rabeya-wahed-biddaniketan.vercel.app; source remains in the exact owner repository. Older milestone notes below are historical where superseded.
 
 Updated 22 November 2026: 4 frontend tests, 54 isolated database checks, 17 isolated Edge tests, both Edge typechecks and production build passed. All 21 live smoke checks passed. See INTEGRATION_STATUS.md and live-readonly-smoke.json. Owner Auth/admin acceptance remains pending. Visual checks below are historical setup-mode checks; the latest connected visual/mobile recheck encountered a browser localhost connection reset despite native HTTP 200.

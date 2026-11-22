@@ -2,6 +2,8 @@
 
 Updated 22 November 2026 (Asia/Dhaka). School project only: School_Management_System, reference nfoohhydncflcbegrxbz. The old SMSA project was not accessed.
 
+Initial owner activation is now verified; see [OWNER_ACTIVATION.md](OWNER_ACTIVATION.md). The earlier zero-account evidence is a historical pre-activation snapshot.
+
 ## Current verified state
 
 The original website and CMS remain. The upgrade adds one protected Super Admin plus at most one invited secondary Admin, approved teacher accounts, class/subject permissions and a normalized examination workflow. Students and guardians have no accounts.
@@ -17,11 +19,11 @@ The original website and CMS remain. The upgrade adds one protected Super Admin 
 
 ## Account and email gates
 
-The live project still has zero Auth users, zero owner memberships, zero teachers, zero secondary Admins and zero students. No synthetic school record or second administrator was created in production. The owner's earlier request to keep the initial invitation pending for Resend remains respected.
+The initial owner now has a confirmed Auth account and the sole protected Super Admin membership. The owner accepted the built-in invitation, chose their password and opened the authenticated Chrome admin workspace. Zero secondary Admins were created. No synthetic school record was created in production; historical zero-account counts in upgrade-evidence.json precede activation.
 
 Resend has no verified sending domain. The school-accounts email gate, SCHOOL_EMAIL_ENABLED, defaults to false and is not enabled. Invitations and registration email therefore return an explicit SMTP-pending message before creating an Auth user. No credentials or sender address were invented. Supabase's default SMTP serves only project-team addresses and currently allows two messages/hour; it cannot support ordinary external teachers/Admin invitees in production. [Official SMTP limits](https://supabase.com/docs/guides/auth/auth-smtp).
 
-After an owner-provided verified domain/sender and secure SMTP configuration, enable SCHOOL_EMAIL_ENABLED=true, complete the pending primary-owner invitation, and run real-mailbox acceptance. This is an infrastructure action, not an instruction for the owner to write SQL or code.
+The primary owner was activated through an eligible built-in invitation. After an owner-provided verified domain/sender and secure SMTP configuration, enable SCHOOL_EMAIL_ENABLED=true and run external teacher/secondary-admin real-mailbox acceptance. This is an infrastructure action, not an instruction for the owner to write SQL or code.
 
 ## Access and marks workflow
 
@@ -47,20 +49,20 @@ Core public pages preserve Bengali/English navigation. New workflow labels are b
 
 ## Tests actually executed
 
-| Check                                                     | Result                                                                                                                                       |
-| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Original isolated database suite                          | 54 checks passed                                                                                                                             |
-| Full migration/role/marks/invitation upgrade suite        | 83 checks passed                                                                                                                             |
-| Public API and upload Deno suite                          | 19 tests passed                                                                                                                              |
-| School-account handler Deno suite                         | 12 tests passed                                                                                                                              |
-| Frontend schema suite                                     | 4 tests passed                                                                                                                               |
-| All three Edge entrypoint typechecks                      | Passed                                                                                                                                       |
-| TypeScript/Vite production build                          | Passed                                                                                                                                       |
-| New live anonymous/API/privacy/email-gate smoke suite     | 26 checks passed; live-upgrade-smoke.json                                                                                                    |
-| Historical live suite                                     | 21 checks passed; live-readonly-smoke.json                                                                                                   |
-| Connected local browser                                   | Teacher registration desktop/mobile 390×844; no horizontal overflow; protected route shows login                                             |
-| Connected production browser                              | Setup banner absent, login enabled, protected routes guarded, Bengali/English navigation verified; registration correctly shows SMTP pending |
-| Real invitation/password/approved-user browser acceptance | Pending SMTP and initial owner invitation; not claimed passed                                                                                |
+| Check                                                             | Result                                                                                                                                       |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Original isolated database suite                                  | 54 checks passed                                                                                                                             |
+| Full migration/role/marks/invitation upgrade suite                | 83 checks passed                                                                                                                             |
+| Public API and upload Deno suite                                  | 19 tests passed                                                                                                                              |
+| School-account handler Deno suite                                 | 12 tests passed                                                                                                                              |
+| Frontend schema suite                                             | 4 tests passed                                                                                                                               |
+| All three Edge entrypoint typechecks                              | Passed                                                                                                                                       |
+| TypeScript/Vite production build                                  | Passed                                                                                                                                       |
+| New live anonymous/API/privacy/email-gate smoke suite             | 26 checks passed; live-upgrade-smoke.json                                                                                                    |
+| Historical live suite                                             | 21 checks passed; live-readonly-smoke.json                                                                                                   |
+| Connected local browser                                           | Teacher registration desktop/mobile 390×844; no horizontal overflow; protected route shows login                                             |
+| Connected production browser                                      | Setup banner absent, login enabled, protected routes guarded, Bengali/English navigation verified; registration correctly shows SMTP pending |
+| Teacher/secondary-admin real-mailbox and approved-user acceptance | Pending SMTP; initial owner email/password/dashboard acceptance is now verified                                                              |
 
 Positive synthetic accounts/marks/student fixtures exist only in isolated PGlite/fake handler tests. Live checks use reads/rejected requests and transient rate counters; no fake student/teacher account was created. Snapshot counts and migration evidence are in DATABASE_SETUP.md and upgrade-evidence.json.
 
@@ -70,4 +72,4 @@ The existing GitHub main branch is connected to the existing Vercel project, ver
 
 Backups/PITR were not upgraded or tested. Supabase Free automatic project backups are unavailable; independent encrypted database/Auth recovery planning and separate Storage-byte copies remain necessary. No recovery claim is made.
 
-Remaining owner-dependent steps: verified Resend domain/sender and secure credentials, the pending initial Super Admin invitation/password, real teacher/secondary-admin mailbox acceptance, authenticated workflow and print/PDF review, final verified school content, and an isolated backup restoration rehearsal. Detailed operating steps are in ADMIN_MANUAL_BN.md. Do not add organization members to bypass email restrictions.
+Remaining owner-dependent steps: verified Resend domain/sender and secure credentials, real teacher/secondary-admin mailbox acceptance, authenticated workflow and print/PDF review, final verified school content, and an isolated backup restoration rehearsal. Detailed operating steps are in ADMIN_MANUAL_BN.md. Do not add organization members to bypass email restrictions.
