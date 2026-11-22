@@ -9,9 +9,10 @@ The original website and CMS remain. The upgrade adds one protected Super Admin 
 - 37 public tables, all RLS-enabled; the original 16 tables/data are preserved.
 - Ten tracked migrations, with local filenames matching remote versions. No reset, table removal, truncation or existing-record deletion occurred. The owner explicitly approved making student birth_date nullable; past-date validation remains.
 - Original six buckets retained. Two new private image buckets: teacher-private and student-photos. Eight total, three private. Private file viewing uses expiring signed URLs.
-- Edge Functions active: public-api v7, upload v7, school-accounts v1 at verification. Gateway JWT checks are off because public actions are anonymous and protected actions validate Auth/session/roles inside the handlers.
+- Edge Functions active: public-api v8, upload v8, school-accounts v2 at final verification (runtime versions include the origin-secret refresh). Gateway JWT checks are off because public actions are anonymous and protected actions validate Auth/session/roles inside the handlers.
 - Hosted public signup remains disabled. Teacher self-registration uses the guarded server endpoint and an email invitation to verify the mailbox/choose a password; it creates a pending teacher record only after the Auth invitation succeeds. No student/admin public signup exists.
 - Production Site URL is https://rabeya-wahed-biddaniketan.vercel.app. Its exact /admin/reset-password callback was added; the two local callbacks remain. The Edge origin allowlist now includes this exact production origin plus the two local port-5173 origins. No Vercel project/settings were replaced.
+- The existing Vercel Production environment now contains VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, VITE_SITE_URL and VITE_AUTH_CAPTCHA_ENABLED=false. The rebuilt browser bundle matches the exact school project/public key; no server credential patterns were found. The initial missing-configuration banner is resolved. No service-role key was added to Vercel.
 - Cloudflare remains optional/deferred. Validation, bounded requests, server rate limiting, honeypot/timing checks, Auth and RLS remain enforced.
 
 ## Account and email gates
@@ -46,25 +47,26 @@ Core public pages preserve Bengali/English navigation. New workflow labels are b
 
 ## Tests actually executed
 
-| Check                                                     | Result                                                                                           |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Original isolated database suite                          | 54 checks passed                                                                                 |
-| Full migration/role/marks/invitation upgrade suite        | 83 checks passed                                                                                 |
-| Public API and upload Deno suite                          | 19 tests passed                                                                                  |
-| School-account handler Deno suite                         | 12 tests passed                                                                                  |
-| Frontend schema suite                                     | 4 tests passed                                                                                   |
-| All three Edge entrypoint typechecks                      | Passed                                                                                           |
-| TypeScript/Vite production build                          | Passed                                                                                           |
-| New live anonymous/API/privacy/email-gate smoke suite     | 26 checks passed; live-upgrade-smoke.json                                                        |
-| Historical live suite                                     | 21 checks passed; live-readonly-smoke.json                                                       |
-| Connected local browser                                   | Teacher registration desktop/mobile 390×844; no horizontal overflow; protected route shows login |
-| Real invitation/password/approved-user browser acceptance | Pending SMTP and initial owner invitation; not claimed passed                                    |
+| Check                                                     | Result                                                                                                                                       |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Original isolated database suite                          | 54 checks passed                                                                                                                             |
+| Full migration/role/marks/invitation upgrade suite        | 83 checks passed                                                                                                                             |
+| Public API and upload Deno suite                          | 19 tests passed                                                                                                                              |
+| School-account handler Deno suite                         | 12 tests passed                                                                                                                              |
+| Frontend schema suite                                     | 4 tests passed                                                                                                                               |
+| All three Edge entrypoint typechecks                      | Passed                                                                                                                                       |
+| TypeScript/Vite production build                          | Passed                                                                                                                                       |
+| New live anonymous/API/privacy/email-gate smoke suite     | 26 checks passed; live-upgrade-smoke.json                                                                                                    |
+| Historical live suite                                     | 21 checks passed; live-readonly-smoke.json                                                                                                   |
+| Connected local browser                                   | Teacher registration desktop/mobile 390×844; no horizontal overflow; protected route shows login                                             |
+| Connected production browser                              | Setup banner absent, login enabled, protected routes guarded, Bengali/English navigation verified; registration correctly shows SMTP pending |
+| Real invitation/password/approved-user browser acceptance | Pending SMTP and initial owner invitation; not claimed passed                                                                                |
 
 Positive synthetic accounts/marks/student fixtures exist only in isolated PGlite/fake handler tests. Live checks use reads/rejected requests and transient rate counters; no fake student/teacher account was created. Snapshot counts and migration evidence are in DATABASE_SETUP.md and upgrade-evidence.json.
 
 ## Release and ownership
 
-The existing GitHub main branch is connected to the existing Vercel project, verified by its Vercel commit status. Tested source is pushed to that same repository; final commit/deployment evidence is reported with the task completion. No second repository, Vercel project, domain or paid service was created.
+The existing GitHub main branch is connected to the existing Vercel project, verified by its Vercel commit status. After the first build revealed missing frontend values, the owner completed Vercel sign-in/identity verification; the four public production values were added and the same tested source rebuilt successfully. Tested source is pushed to that same repository; final commit/deployment evidence is reported with the task completion. No second repository, Vercel project, domain or paid service was created.
 
 Backups/PITR were not upgraded or tested. Supabase Free automatic project backups are unavailable; independent encrypted database/Auth recovery planning and separate Storage-byte copies remain necessary. No recovery claim is made.
 

@@ -15,6 +15,7 @@ Project: School_Management_System (nfoohhydncflcbegrxbz), verified 22 November 2
 | 20261122075129 | optional_student_birth_date                   |
 | 20261122075518 | account_audit_and_history                     |
 | 20261122080011 | academic_identity_guards                      |
+| 20261122081218 | withdrawal_marks_integrity                    |
 
 All are already applied. Do not rerun or reset this project. Local filenames match remote history. Original three migration hashes remain unchanged; database-setup-evidence.json retains the original historical names intentionally.
 
